@@ -1,22 +1,40 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.greenmarket.model;
 
-/**
- *
- * @author mac
- */
-import java.util.Date;
-
 public class Wishlist {
-    private String id_wishlist; // UUID
-    private int id_user;
+    private String id_wishlist;
+    private String id_user_buyer;
     private String id_produk;
-    private Date created_at;
-    private User user;
-    private Produk produk;
 
-    // Constructor, Getter, Setter
+    public Wishlist() {
+    }
+
+    public Wishlist(String id_wishlist, String id_user_buyer, String id_produk) {
+        this.id_wishlist = id_wishlist;
+        this.id_user_buyer = id_user_buyer;
+        this.id_produk = id_produk;
+    }
+
+    public String getId_wishlist() {
+        return id_wishlist;
+    }
+
+    public void setId_wishlist(String id_wishlist) {
+        this.id_wishlist = id_wishlist;
+    }
+
+    public String getId_user_buyer() {
+        return id_user_buyer;
+    }
+
+    public void setId_user_buyer(String id_user_buyer) {
+        this.id_user_buyer = id_user_buyer;
+    }
+
+    public String getId_produk() {
+        return id_produk;
+    }
+
+    public void setId_produk(String id_produk) {
+        this.id_produk = id_produk;
+    }
 }
