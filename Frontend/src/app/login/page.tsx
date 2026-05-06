@@ -34,11 +34,11 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Hapus data lama sebelum login baru (mencegah konflik role)
     localStorage.clear();
 
     try {
-      const response = await fetch("http://localhost:5050/login", {
+      // 1. SESUAIKAN URL (Gunakan port 8080 dan context path .war kamu)
+      const response = await fetch("http://localhost:8080/backend-java-1.0-SNAPSHOT/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,26 +49,29 @@ export default function LoginPage() {
         }),
       });
 
-      const data = await response.json() as any;
+      const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("userId", data.user.id);
-        localStorage.setItem("userRole", data.user.role); 
-
+        // 2. SESUAIKAN PENGAMBILAN DATA
+        // Karena di LoginController kita pakai responseData.put("user", user.getUsername())
+        // maka kita simpan sesuai key yang dikirim Java
+        localStorage.setItem("username", data.user); 
+        
         alert("Login Berhasil! Selamat datang kembali.");
         
-        if (data.user.role === "ADMIN") {
+        // Sesuaikan logika redirect jika Java kamu mengirimkan role
+        // Jika saat ini belum ada role di Java, biarkan ke dashboard biasa dulu
+        if (data.role === "ADMIN") {
           router.push("/admin-panel");
         } else {
           router.push("/beranda-dashboard");
         } 
       } else {
-        alert(data.message || "Login Gagal");
+        alert(data.message || "Email atau Password Salah");
       }
     } catch (error) {
       console.error("Login Error:", error);
-      alert("Gagal terhubung ke server. Pastikan Backend jalan di port 5050");
+      alert("Gagal terhubung ke server Java. Pastikan Tomcat jalan di port 8080");
     }
   };
 

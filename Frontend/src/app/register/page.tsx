@@ -35,10 +35,22 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validasi sederhana
+    if (!form.terms) {
+      alert("Anda harus menyetujui Syarat & Ketentuan");
+      return;
+    }
+
     try {
-      const response = await fetch("http://localhost:5050/register", {
+      // Sesuaikan URL dengan Backend Java kamu (Port 8080)
+      const response = await fetch("http://localhost:8080/backend-java-1.0-SNAPSHOT/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // Jika Java kamu di server berbeda, header Accept juga bagus untuk ditambahkan
+          "Accept": "application/json"
+        },
         body: JSON.stringify({
           username: form.username,
           email: form.email,
@@ -48,15 +60,16 @@ export default function RegisterPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        alert("Registrasi Berhasil! Silakan Login.");
+      if (response.ok && data.status === "success") {
+        alert(data.message || "Registrasi Berhasil!");
         router.push("/login");
       } else {
+        // Ini akan menangkap pesan "Email sudah terdaftar" dari Java
         alert(data.message || "Terjadi kesalahan saat mendaftar");
       }
     } catch (error) {
       console.error("Connection Error:", error);
-      alert("Gagal terhubung ke server.");
+      alert("Gagal terhubung ke server Java (Pastikan NetBeans/Tomcat sudah RUN).");
     }
   };
 

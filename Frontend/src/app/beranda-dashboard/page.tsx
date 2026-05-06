@@ -57,7 +57,7 @@ export default function BerandaDashboard() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const url = "http://localhost:5050/api/products";
+        const url = "http://localhost:8080/backend-java/api/produk";
         
         const response = await fetch(url);
         if (!response.ok) throw new Error("Gagal mengambil data");
