@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { ToastProvider } from "@/components/ui/Toast";
 
-// Menggunakan font Plus Jakarta Sans agar sesuai desain GreenMarket
-const jakarta = Plus_Jakarta_Sans({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
+  variable: "--font-plus-jakarta",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -20,12 +20,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body 
-        className={`${jakarta.className} min-h-screen bg-[#f1f8e9] text-[#1a2e1f] antialiased`}
+    <html lang="id" suppressHydrationWarning>
+      <body
+        className={`${plusJakarta.variable} min-h-screen bg-[#f1f8e9] text-[#1a2e1f] font-sans antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

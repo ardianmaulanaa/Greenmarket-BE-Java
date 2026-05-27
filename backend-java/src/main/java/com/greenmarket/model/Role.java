@@ -11,5 +11,6 @@ package com.greenmarket.model;
 public enum Role {
     BUYER,
     SELLER,
+    GUEST,
     ADMIN
 }

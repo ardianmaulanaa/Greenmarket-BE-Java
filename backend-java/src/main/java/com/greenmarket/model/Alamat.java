@@ -1,7 +1,7 @@
 package com.greenmarket.model;
 
 public class Alamat {
-    private String id_alamat; 
+    private String id_alamat;
     private int id_user;
     private String nama_penerima;
     private String nomor_hp;

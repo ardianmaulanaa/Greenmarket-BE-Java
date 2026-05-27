@@ -1,128 +1,245 @@
 package com.greenmarket.dao;
 
-// Import sudah lengkap untuk kebutuhan JDBC dan Model
-import com.greenmarket.model.KategoriProduk;
 import com.greenmarket.model.Produk;
-import com.greenmarket.model.ProdukFoto;
-import com.greenmarket.model.User;
 import com.greenmarket.util.DBConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
-// Hapus "implements ProdukDAO" agar menjadi kelas tunggal sesuai diagram
 public class ProdukDAO {
 
-    // Sesuai image_03d855.png: getProduct()
-    public List<Produk> getProduct() {
+    private Produk mapResultSetToProduk(ResultSet rs) throws SQLException {
+        Produk produk = new Produk();
+
+        produk.setId_produk(rs.getString("id_produk"));
+        produk.setId_user_seller(rs.getInt("id_user_seller"));
+        produk.setId_kategori(rs.getString("id_kategori"));
+        produk.setNama_produk(rs.getString("nama_produk"));
+        produk.setDeskripsi(rs.getString("deskripsi"));
+        produk.setHarga(rs.getInt("harga"));
+        produk.setStok(rs.getInt("stok"));
+        produk.setStatus_produk(rs.getString("status_produk"));
+        produk.setCreated_at(rs.getTimestamp("created_at"));
+        produk.setFoto_produk(rs.getString("foto_produk"));
+        produk.setKonten_deskripsi(rs.getString("konten_deskripsi"));
+        produk.setCatatan_penjual(rs.getString("catatan_penjual"));
+
+        Array fotoArray = rs.getArray("foto_produk_list");
+        if (fotoArray != null) {
+            String[] fotoList = (String[]) fotoArray.getArray();
+            produk.setFoto_produk_list(Arrays.asList(fotoList));
+        }
+
+        return produk;
+    }
+
+    public List<Produk> getAllProduk() {
         List<Produk> list = new ArrayList<>();
-        String sql = "SELECT p.id_produk, p.id_user_seller, p.id_kategori, " +
-                     "p.nama_produk, p.deskripsi, p.harga, p.stok, " +
-                     "k.nama_kategori, " +
-                     "u.username, u.email " +
-                     "FROM \"Produk\" p " +
-                     "LEFT JOIN \"Kategori_Produk\" k ON p.id_kategori = k.id_kategori " +
-                     "LEFT JOIN \"User\" u ON p.id_user_seller = u.id";
+        String sql = "SELECT * FROM \"Produk\" ORDER BY created_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Produk p = new Produk();
-                p.setId_produk(rs.getString("id_produk"));
-                p.setId_user_seller(rs.getInt("id_user_seller"));
-                p.setId_kategori(rs.getString("id_kategori"));
-                p.setNama_produk(rs.getString("nama_produk"));
-                p.setDeskripsi(rs.getString("deskripsi"));
-                p.setHarga(rs.getInt("harga"));
-                p.setStok(rs.getInt("stok"));
-
-                KategoriProduk kat = new KategoriProduk();
-                kat.setNama_kategori(rs.getString("nama_kategori"));
-                p.setKategori(kat);
-
-                User seller = new User();
-                seller.setUsername(rs.getString("username"));
-                seller.setEmail(rs.getString("email"));
-                p.setSeller(seller);
-
-                p.setFotos(getFotosByProdukId(conn, rs.getString("id_produk")));
-                list.add(p);
+                list.add(mapResultSetToProduk(rs));
             }
+
         } catch (SQLException e) {
-            System.err.println("❌ Error getProduct: " + e.getMessage());
+            System.err.println("[ERROR] getAllProduk gagal: " + e.getMessage());
+            e.printStackTrace();
         }
+
         return list;
     }
 
-    // Helper untuk mengambil foto (tetap diperlukan secara internal)
-    private List<ProdukFoto> getFotosByProdukId(Connection conn, String id_produk) throws SQLException {
-        List<ProdukFoto> fotos = new ArrayList<>();
-        String sql = "SELECT url_foto FROM \"Produk_Foto\" WHERE id_produk = ?";
+    public Produk getProdukById(String idProduk) {
+        String sql = "SELECT * FROM \"Produk\" WHERE id_produk = ?";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id_produk);
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, idProduk);
+
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ProdukFoto foto = new ProdukFoto();
-                    foto.setUrl_foto(rs.getString("url_foto"));
-                    fotos.add(foto);
+                if (rs.next()) {
+                    return mapResultSetToProduk(rs);
                 }
             }
-        }
-        return fotos;
-    }
 
-    // Sesuai image_03d855.png: addProduct()
-    public void addProduct(Produk produk) {
-        String sql = "INSERT INTO \"Produk\" (id_user_seller, id_kategori, nama_produk, deskripsi, harga, stok) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, produk.getId_user_seller());
-            ps.setString(2, produk.getId_kategori());
-            ps.setString(3, produk.getNama_produk());
-            ps.setString(4, produk.getDeskripsi());
-            ps.setInt(5, produk.getHarga());
-            ps.setInt(6, produk.getStok());
-            ps.executeUpdate();
-            System.out.println("✅ addProduct sukses!");
         } catch (SQLException e) {
-            System.err.println("❌ Error addProduct: " + e.getMessage());
+            System.err.println("[ERROR] getProdukById gagal: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        return null;
     }
 
-    // Sesuai image_03d855.png: updateProduct()
-    public void updateProduct(Produk produk) {
-        String sql = "UPDATE \"Produk\" SET id_kategori=?, nama_produk=?, deskripsi=?, harga=?, stok=? " +
-                     "WHERE id_produk=?";
+    public List<Produk> getProdukBySeller(int idSeller) {
+        List<Produk> list = new ArrayList<>();
+        String sql = "SELECT * FROM \"Produk\" WHERE id_user_seller = ? ORDER BY created_at DESC";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, idSeller);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToProduk(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] getProdukBySeller gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Produk> getProdukByKategori(String idKategori) {
+        List<Produk> list = new ArrayList<>();
+        String sql = "SELECT * FROM \"Produk\" WHERE id_kategori = ? ORDER BY created_at DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, idKategori);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToProduk(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] getProdukByKategori gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Produk> searchProduk(String keyword) {
+        List<Produk> list = new ArrayList<>();
+        String sql = "SELECT * FROM \"Produk\" WHERE LOWER(nama_produk) LIKE LOWER(?) OR LOWER(deskripsi) LIKE LOWER(?) ORDER BY created_at DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            String search = "%" + keyword + "%";
+            ps.setString(1, search);
+            ps.setString(2, search);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToProduk(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] searchProduk gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public boolean insertProduk(Produk produk) {
+        String sql = "INSERT INTO \"Produk\" " +
+                "(id_produk, id_user_seller, id_kategori, nama_produk, deskripsi, harga, stok, status_produk, created_at, foto_produk, konten_deskripsi, catatan_penjual, foto_produk_list) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            String id = produk.getId_produk();
+            if (id == null || id.trim().isEmpty()) {
+                id = UUID.randomUUID().toString();
+            }
+
+            ps.setString(1, id);
+            ps.setInt(2, produk.getId_user_seller());
+            ps.setString(3, produk.getId_kategori());
+            ps.setString(4, produk.getNama_produk());
+            ps.setString(5, produk.getDeskripsi());
+            ps.setInt(6, produk.getHarga());
+            ps.setInt(7, produk.getStok());
+            ps.setString(8, produk.getStatus_produk() == null ? "AKTIF" : produk.getStatus_produk());
+            ps.setString(9, produk.getFoto_produk());
+            ps.setString(10, produk.getKonten_deskripsi());
+            ps.setString(11, produk.getCatatan_penjual());
+
+            if (produk.getFoto_produk_list() != null) {
+                Array fotoArray = conn.createArrayOf("text", produk.getFoto_produk_list().toArray());
+                ps.setArray(12, fotoArray);
+            } else {
+                ps.setNull(12, Types.ARRAY);
+            }
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] insertProduk gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateProduk(Produk produk) {
+        String sql = "UPDATE \"Produk\" SET id_kategori = ?, nama_produk = ?, deskripsi = ?, harga = ?, stok = ?, status_produk = ?, foto_produk = ?, konten_deskripsi = ?, catatan_penjual = ?, foto_produk_list = ? WHERE id_produk = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, produk.getId_kategori());
             ps.setString(2, produk.getNama_produk());
             ps.setString(3, produk.getDeskripsi());
             ps.setInt(4, produk.getHarga());
             ps.setInt(5, produk.getStok());
-            ps.setString(6, produk.getId_produk());
-            ps.executeUpdate();
-            System.out.println("✅ updateProduct sukses!");
+            ps.setString(6, produk.getStatus_produk());
+            ps.setString(7, produk.getFoto_produk());
+            ps.setString(8, produk.getKonten_deskripsi());
+            ps.setString(9, produk.getCatatan_penjual());
+
+            if (produk.getFoto_produk_list() != null) {
+                Array fotoArray = conn.createArrayOf("text", produk.getFoto_produk_list().toArray());
+                ps.setArray(10, fotoArray);
+            } else {
+                ps.setNull(10, Types.ARRAY);
+            }
+
+            ps.setString(11, produk.getId_produk());
+
+            return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            System.err.println("❌ Error updateProduct: " + e.getMessage());
+            System.err.println("[ERROR] updateProduk gagal: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        return false;
     }
 
-    // Sesuai image_03d855.png: deleteProduct()
-    public void deleteProduct(String id_produk) {
+    public boolean deleteProduk(String idProduk) {
         String sql = "DELETE FROM \"Produk\" WHERE id_produk = ?";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id_produk);
-            ps.executeUpdate();
-            System.out.println("✅ deleteProduct sukses!");
+
+            ps.setString(1, idProduk);
+            return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            System.err.println("❌ Error deleteProduct: " + e.getMessage());
+            System.err.println("[ERROR] deleteProduk gagal: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        return false;
     }
 }
