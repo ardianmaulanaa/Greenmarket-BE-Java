@@ -5,8 +5,17 @@ import LoginHeroPanel from "@/components/auth/LoginHeroPanel";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useToast } from "@/hooks/useToast";
+import { API_BASE_URL } from "@/lib/api";
+
+const AUTH_API_URL = `${API_BASE_URL}/auth`;
 
 interface LoginResponse {
   success?: boolean;
@@ -30,7 +39,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Backend Java
 // AuthController kamu pakai @WebServlet("/api/auth/*")
 // jadi login endpoint-nya adalah /api/auth/login
-const API_BASE_URL = "http://localhost:8080/backend-java-1.0-SNAPSHOT/api/auth";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -50,12 +58,18 @@ const stagger: Variants = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
-function mapLoginError(message: string): { notification: string; fields: FieldErrors } {
+function mapLoginError(message: string): {
+  notification: string;
+  fields: FieldErrors;
+} {
   const msg = (message || "").toLowerCase();
 
   if (
     msg.includes("password") &&
-    (msg.includes("salah") || msg.includes("wrong") || msg.includes("invalid") || msg.includes("incorrect"))
+    (msg.includes("salah") ||
+      msg.includes("wrong") ||
+      msg.includes("invalid") ||
+      msg.includes("incorrect"))
   ) {
     return {
       notification: "Password salah",
@@ -65,7 +79,10 @@ function mapLoginError(message: string): { notification: string; fields: FieldEr
 
   if (
     msg.includes("email") &&
-    (msg.includes("tidak") || msg.includes("not found") || msg.includes("ditemukan") || msg.includes("exist"))
+    (msg.includes("tidak") ||
+      msg.includes("not found") ||
+      msg.includes("ditemukan") ||
+      msg.includes("exist"))
   ) {
     return {
       notification: "Email tidak ditemukan",
@@ -79,7 +96,11 @@ function mapLoginError(message: string): { notification: string; fields: FieldEr
   };
 }
 
-function FormNotification({ notification }: { notification: NotificationState }) {
+function FormNotification({
+  notification,
+}: {
+  notification: NotificationState;
+}) {
   if (!notification) return null;
 
   const isSuccess = notification.type === "success";
@@ -136,7 +157,9 @@ function FormNotification({ notification }: { notification: NotificationState })
           </svg>
         )}
       </span>
-      <p className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}>
+      <p
+        className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}
+      >
         {text}
       </p>
     </motion.div>
@@ -230,7 +253,7 @@ export default function LoginPage() {
       showToast(message, type);
       setNotification({ type, message });
     },
-    [showToast]
+    [showToast],
   );
 
   useEffect(() => {
@@ -248,7 +271,10 @@ export default function LoginPage() {
   useEffect(() => {
     if (!notification) return;
 
-    const timer = setTimeout(() => setNotification(null), NOTIFICATION_DURATION);
+    const timer = setTimeout(
+      () => setNotification(null),
+      NOTIFICATION_DURATION,
+    );
     return () => clearTimeout(timer);
   }, [notification]);
 
@@ -351,7 +377,7 @@ export default function LoginPage() {
         localStorage.setItem("rememberedEmail", rememberedEmail);
       }
 
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${AUTH_API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -405,7 +431,7 @@ export default function LoginPage() {
         }
       } else {
         const { notification: errorMsg, fields } = mapLoginError(
-          data.message || "Email atau password salah"
+          data.message || "Email atau password salah",
         );
 
         setFieldErrors(fields);
@@ -449,7 +475,8 @@ export default function LoginPage() {
         />
         <motion.div className="absolute inset-0 bg-gradient-to-t from-[#111815] via-[#0a110b]/85 to-[#0a110b]/50" />
         <p className="relative z-10 text-lg font-extrabold leading-snug text-white">
-          Masa Depan Bumi <span className="text-[#2fa84f]">Ada di Tangan Kita</span>
+          Masa Depan Bumi{" "}
+          <span className="text-[#2fa84f]">Ada di Tangan Kita</span>
         </p>
       </motion.div>
 
@@ -479,7 +506,12 @@ export default function LoginPage() {
           Kembali
         </Link>
 
-        <motion.div className="w-full max-w-[440px]" initial="hidden" animate="visible" variants={stagger}>
+        <motion.div
+          className="w-full max-w-[440px]"
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+        >
           <motion.div
             variants={fadeUp}
             custom={0}
@@ -497,7 +529,11 @@ export default function LoginPage() {
               }}
             />
 
-            <motion.div variants={fadeUp} custom={1} className="relative z-10 mb-8 flex justify-center">
+            <motion.div
+              variants={fadeUp}
+              custom={1}
+              className="relative z-10 mb-8 flex justify-center"
+            >
               <Link href="/" className="flex items-center gap-2.5 no-underline">
                 <motion.div
                   className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#2fa84f] to-[#1a7a35] shadow-[0_4px_20px_rgba(47,168,79,0.4)]"
@@ -517,18 +553,29 @@ export default function LoginPage() {
                   </svg>
                 </motion.div>
 
-                <span className="text-xl font-extrabold tracking-tight text-white">GreenMarket</span>
+                <span className="text-xl font-extrabold tracking-tight text-white">
+                  GreenMarket
+                </span>
               </Link>
             </motion.div>
 
-            <motion.div variants={fadeUp} custom={2} className="relative z-10 mb-8 text-center">
+            <motion.div
+              variants={fadeUp}
+              custom={2}
+              className="relative z-10 mb-8 text-center"
+            >
               <h1 className="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
                 Selamat Datang Kembali
               </h1>
-              <p className="mt-2 text-sm text-white/50">Lanjutkan aksi hijau Anda</p>
+              <p className="mt-2 text-sm text-white/50">
+                Lanjutkan aksi hijau Anda
+              </p>
             </motion.div>
 
-            <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="relative z-10 flex flex-col gap-4"
+            >
               <FieldWrapper name="email" error={fieldErrors.email}>
                 <FloatingInput
                   id="email"
@@ -570,7 +617,9 @@ export default function LoginPage() {
                     onChange={handleChange}
                     className="h-4 w-4 cursor-pointer rounded border-white/20 bg-white/5 accent-[#2fa84f]"
                   />
-                  <span className="text-xs font-medium text-white/55">Remember Me</span>
+                  <span className="text-xs font-medium text-white/55">
+                    Remember Me
+                  </span>
                 </label>
 
                 <Link
@@ -593,7 +642,11 @@ export default function LoginPage() {
                 <motion.span
                   className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                   animate={isSubmitting ? {} : { x: ["-100%", "100%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.2 }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    repeatDelay: 1.2,
+                  }}
                 />
 
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -602,7 +655,11 @@ export default function LoginPage() {
                       <motion.span
                         className="inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       />
                       Memproses...
                     </>

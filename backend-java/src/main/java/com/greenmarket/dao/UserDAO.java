@@ -28,7 +28,7 @@ public class UserDAO {
         String sql = "SELECT * FROM \"User\" WHERE email = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
 
@@ -51,7 +51,7 @@ public class UserDAO {
         String sql = "SELECT * FROM \"User\" WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -76,8 +76,8 @@ public class UserDAO {
         String sql = "SELECT * FROM \"User\" ORDER BY id ASC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
@@ -96,7 +96,7 @@ public class UserDAO {
         String sql = "INSERT INTO \"User\" (username, email, password, role) VALUES (?, ?, ?, ?::\"Role\")";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             String role = user.getRole();
 
@@ -127,7 +127,7 @@ public class UserDAO {
         String sql = "UPDATE \"User\" SET username = ?, email = ?, role = ?::\"Role\" WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
@@ -149,7 +149,7 @@ public class UserDAO {
         String sql = "UPDATE \"User\" SET password = ? WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, newPassword);
             ps.setInt(2, id);
@@ -169,7 +169,7 @@ public class UserDAO {
         String sql = "DELETE FROM \"User\" WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
@@ -188,7 +188,7 @@ public class UserDAO {
         String sql = "SELECT COUNT(*) FROM \"User\" WHERE email = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
 
@@ -200,6 +200,25 @@ public class UserDAO {
 
         } catch (SQLException e) {
             System.err.println("[ERROR] isEmailExists gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean upgradeUserRole(int id) {
+        String sql = "UPDATE \"User\" SET role = ?::\"Role\" WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, "SELLER");
+            ps.setInt(2, id);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] upgradeUserRole gagal: " + e.getMessage());
             e.printStackTrace();
         }
 

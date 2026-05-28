@@ -129,7 +129,8 @@ export default function ProfileSidebar({
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             <span className="text-sm">Pesanan Saya</span>
-            {renderNotificationBadge(unpaidOrderCount)}
+            {activeMenu === "pesanan" &&
+              renderNotificationBadge(unpaidOrderCount)}
           </Link>
 
           {isSeller && (
@@ -150,6 +151,8 @@ export default function ProfileSidebar({
                 <line x1="12" y1="22.08" x2="12" y2="12" />
               </svg>
               <span className="text-sm">Pesanan Masuk</span>
+              {activeMenu === "pesanan-masuk" &&
+                renderNotificationBadge(unpaidOrderCount)}
             </Link>
           )}
 

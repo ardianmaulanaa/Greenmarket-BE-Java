@@ -5,8 +5,17 @@ import RegisterHeroPanel from "@/components/auth/RegisterHeroPanel";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useToast } from "@/hooks/useToast";
+import { API_BASE_URL } from "@/lib/api";
+
+const AUTH_API_URL = `${API_BASE_URL}/auth`;
 
 interface RegisterResponse {
   success?: boolean;
@@ -15,7 +24,9 @@ interface RegisterResponse {
 }
 
 type NotificationState = { type: "success" | "error"; message: string } | null;
-type FieldErrors = Partial<Record<"username" | "email" | "password" | "confirmPassword", string>>;
+type FieldErrors = Partial<
+  Record<"username" | "email" | "password" | "confirmPassword", string>
+>;
 
 const NOTIFICATION_DURATION = 4000;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +34,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Backend Java
 // AuthController kamu pakai @WebServlet("/api/auth/*")
 // jadi register endpoint-nya adalah /api/auth/register
-const API_BASE_URL = "http://localhost:8080/backend-java-1.0-SNAPSHOT/api/auth";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -43,12 +53,18 @@ const stagger: Variants = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
-function mapRegisterError(message: string): { notification: string; fields: FieldErrors } {
+function mapRegisterError(message: string): {
+  notification: string;
+  fields: FieldErrors;
+} {
   const msg = (message || "").toLowerCase();
 
   if (
     msg.includes("email") &&
-    (msg.includes("sudah") || msg.includes("terdaftar") || msg.includes("exist") || msg.includes("duplicate"))
+    (msg.includes("sudah") ||
+      msg.includes("terdaftar") ||
+      msg.includes("exist") ||
+      msg.includes("duplicate"))
   ) {
     return {
       notification: "Email sudah terdaftar",
@@ -58,7 +74,10 @@ function mapRegisterError(message: string): { notification: string; fields: Fiel
 
   if (
     msg.includes("password") &&
-    (msg.includes("cocok") || msg.includes("match") || msg.includes("konfirmasi") || msg.includes("confirm"))
+    (msg.includes("cocok") ||
+      msg.includes("match") ||
+      msg.includes("konfirmasi") ||
+      msg.includes("confirm"))
   ) {
     return {
       notification: "Password dan konfirmasi password tidak cocok",
@@ -66,7 +85,10 @@ function mapRegisterError(message: string): { notification: string; fields: Fiel
     };
   }
 
-  if (msg.includes("username") && (msg.includes("minimal") || msg.includes("minimum") || msg.includes("5"))) {
+  if (
+    msg.includes("username") &&
+    (msg.includes("minimal") || msg.includes("minimum") || msg.includes("5"))
+  ) {
     return {
       notification: "Username minimal 5 karakter",
       fields: { username: "Username minimal 5 karakter" },
@@ -79,7 +101,11 @@ function mapRegisterError(message: string): { notification: string; fields: Fiel
   };
 }
 
-function FormNotification({ notification }: { notification: NotificationState }) {
+function FormNotification({
+  notification,
+}: {
+  notification: NotificationState;
+}) {
   if (!notification) return null;
 
   const isSuccess = notification.type === "success";
@@ -137,7 +163,9 @@ function FormNotification({ notification }: { notification: NotificationState })
         )}
       </span>
 
-      <p className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}>
+      <p
+        className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}
+      >
         {text}
       </p>
     </motion.div>
@@ -241,7 +269,7 @@ export default function RegisterPage() {
       showToast(message, type);
       setNotification({ type, message });
     },
-    [showToast]
+    [showToast],
   );
 
   useEffect(() => {
@@ -252,7 +280,10 @@ export default function RegisterPage() {
   useEffect(() => {
     if (!notification) return;
 
-    const timer = setTimeout(() => setNotification(null), NOTIFICATION_DURATION);
+    const timer = setTimeout(
+      () => setNotification(null),
+      NOTIFICATION_DURATION,
+    );
     return () => clearTimeout(timer);
   }, [notification]);
 
@@ -304,7 +335,10 @@ export default function RegisterPage() {
       setFieldErrors(errors);
 
       if (errors.confirmPassword === "Password tidak cocok") {
-        showNotification("error", "Password dan konfirmasi password tidak cocok");
+        showNotification(
+          "error",
+          "Password dan konfirmasi password tidak cocok",
+        );
       } else if (errors.username === "Username minimal 5 karakter") {
         showNotification("error", "Username minimal 5 karakter");
       } else {
@@ -329,7 +363,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/register`, {
+      const response = await fetch(`${AUTH_API_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -351,7 +385,10 @@ export default function RegisterPage() {
       }
 
       if (response.ok && data.success !== false) {
-        showNotification("success", data.message || "Registrasi berhasil! Silakan login");
+        showNotification(
+          "success",
+          data.message || "Registrasi berhasil! Silakan login",
+        );
 
         setForm({
           username: "",
@@ -364,7 +401,7 @@ export default function RegisterPage() {
         setTimeout(() => router.push("/login"), 1500);
       } else {
         const { notification: errorMsg, fields } = mapRegisterError(
-          data.message || "Terjadi kesalahan saat mendaftar"
+          data.message || "Terjadi kesalahan saat mendaftar",
         );
 
         setFieldErrors(fields);
@@ -414,7 +451,8 @@ export default function RegisterPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#111815] via-[#0a110b]/80 to-[#0a110b]/40" />
         <p className="relative z-10 text-lg font-extrabold leading-snug text-white">
-          Masa Depan Bumi <span className="text-[#2fa84f]">Ada di Tangan Kita</span>
+          Masa Depan Bumi{" "}
+          <span className="text-[#2fa84f]">Ada di Tangan Kita</span>
         </p>
       </motion.div>
 
@@ -444,7 +482,12 @@ export default function RegisterPage() {
           Kembali
         </Link>
 
-        <motion.div className="w-full max-w-[440px]" initial="hidden" animate="visible" variants={stagger}>
+        <motion.div
+          className="w-full max-w-[440px]"
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+        >
           <motion.div
             variants={fadeUp}
             custom={0}
@@ -462,7 +505,11 @@ export default function RegisterPage() {
               }}
             />
 
-            <motion.div variants={fadeUp} custom={1} className="relative z-10 mb-8 flex justify-center">
+            <motion.div
+              variants={fadeUp}
+              custom={1}
+              className="relative z-10 mb-8 flex justify-center"
+            >
               <Link href="/" className="flex items-center gap-2.5 no-underline">
                 <motion.div
                   className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#2fa84f] to-[#1a7a35] shadow-[0_4px_20px_rgba(47,168,79,0.4)]"
@@ -482,18 +529,29 @@ export default function RegisterPage() {
                   </svg>
                 </motion.div>
 
-                <span className="text-xl font-extrabold tracking-tight text-white">GreenMarket</span>
+                <span className="text-xl font-extrabold tracking-tight text-white">
+                  GreenMarket
+                </span>
               </Link>
             </motion.div>
 
-            <motion.div variants={fadeUp} custom={2} className="relative z-10 mb-8 text-center">
+            <motion.div
+              variants={fadeUp}
+              custom={2}
+              className="relative z-10 mb-8 text-center"
+            >
               <h1 className="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
                 Buat Akun Baru
               </h1>
-              <p className="mt-2 text-sm text-white/50">Mari mulai aksi hijau Anda dari sini</p>
+              <p className="mt-2 text-sm text-white/50">
+                Mari mulai aksi hijau Anda dari sini
+              </p>
             </motion.div>
 
-            <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="relative z-10 flex flex-col gap-4"
+            >
               <FieldWrapper name="username" error={fieldErrors.username}>
                 <FloatingInput
                   id="username"
@@ -532,7 +590,10 @@ export default function RegisterPage() {
                 />
               </FieldWrapper>
 
-              <FieldWrapper name="confirmPassword" error={fieldErrors.confirmPassword}>
+              <FieldWrapper
+                name="confirmPassword"
+                error={fieldErrors.confirmPassword}
+              >
                 <FloatingInput
                   id="confirmPassword"
                   name="confirmPassword"
@@ -545,7 +606,11 @@ export default function RegisterPage() {
                 />
               </FieldWrapper>
 
-              <motion.div variants={fadeUp} custom={5} className="flex items-start gap-3 pt-1">
+              <motion.div
+                variants={fadeUp}
+                custom={5}
+                className="flex items-start gap-3 pt-1"
+              >
                 <input
                   id="terms"
                   name="terms"
@@ -555,9 +620,15 @@ export default function RegisterPage() {
                   required
                   className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-white/20 bg-white/5 accent-[#2fa84f]"
                 />
-                <label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-white/50">
+                <label
+                  htmlFor="terms"
+                  className="cursor-pointer text-xs leading-relaxed text-white/50"
+                >
                   Saya setuju dengan{" "}
-                  <Link href="#" className="font-semibold text-[#2fa84f] no-underline hover:text-[#7ee8a0]">
+                  <Link
+                    href="#"
+                    className="font-semibold text-[#2fa84f] no-underline hover:text-[#7ee8a0]"
+                  >
                     Syarat & Ketentuan
                   </Link>
                 </label>
@@ -575,7 +646,11 @@ export default function RegisterPage() {
                 <motion.span
                   className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                   animate={isSubmitting ? {} : { x: ["-100%", "100%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                  }}
                 />
 
                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -584,7 +659,11 @@ export default function RegisterPage() {
                       <motion.span
                         className="inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
                       />
                       Mendaftar...
                     </>
@@ -602,7 +681,10 @@ export default function RegisterPage() {
             >
               <p className="text-sm text-white/45">
                 Sudah punya akun?{" "}
-                <Link href="/login" className="font-bold text-[#2fa84f] no-underline hover:text-[#7ee8a0]">
+                <Link
+                  href="/login"
+                  className="font-bold text-[#2fa84f] no-underline hover:text-[#7ee8a0]"
+                >
                   Masuk di sini
                 </Link>
               </p>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 // Animation styles for smooth entrance effects
 const animationStyles = `
@@ -150,7 +151,7 @@ export default function DashboardSeller() {
       try {
         setLoading(true);
 
-        const response = await fetch("http://localhost:5050/api/products");
+        const response = await fetch(`${API_BASE_URL}/products`);
 
         if (!response.ok) {
           throw new Error("Gagal mengambil data produk seller");

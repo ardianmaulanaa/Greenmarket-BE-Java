@@ -41,8 +41,8 @@ public class ProdukDAO {
         String sql = "SELECT * FROM \"Produk\" ORDER BY created_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 list.add(mapResultSetToProduk(rs));
@@ -60,7 +60,7 @@ public class ProdukDAO {
         String sql = "SELECT * FROM \"Produk\" WHERE id_produk = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, idProduk);
 
@@ -83,7 +83,7 @@ public class ProdukDAO {
         String sql = "SELECT * FROM \"Produk\" WHERE id_user_seller = ? ORDER BY created_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, idSeller);
 
@@ -106,7 +106,7 @@ public class ProdukDAO {
         String sql = "SELECT * FROM \"Produk\" WHERE id_kategori = ? ORDER BY created_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, idKategori);
 
@@ -126,10 +126,12 @@ public class ProdukDAO {
 
     public List<Produk> searchProduk(String keyword) {
         List<Produk> list = new ArrayList<>();
-        String sql = "SELECT * FROM \"Produk\" WHERE LOWER(nama_produk) LIKE LOWER(?) OR LOWER(deskripsi) LIKE LOWER(?) ORDER BY created_at DESC";
-
+        String sql = "SELECT p.* FROM \"Produk\" p " +
+                "JOIN \"Kategori_Produk\" k ON p.id_kategori = k.id_kategori " +
+                "WHERE LOWER(p.nama_produk) LIKE LOWER(?) OR LOWER(k.nama_kategori) LIKE LOWER(?) " +
+                "ORDER BY p.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             String search = "%" + keyword + "%";
             ps.setString(1, search);
@@ -151,11 +153,12 @@ public class ProdukDAO {
 
     public boolean insertProduk(Produk produk) {
         String sql = "INSERT INTO \"Produk\" " +
-                "(id_produk, id_user_seller, id_kategori, nama_produk, deskripsi, harga, stok, status_produk, created_at, foto_produk, konten_deskripsi, catatan_penjual, foto_produk_list) " +
+                "(id_produk, id_user_seller, id_kategori, nama_produk, deskripsi, harga, stok, status_produk, created_at, foto_produk, konten_deskripsi, catatan_penjual, foto_produk_list) "
+                +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             String id = produk.getId_produk();
             if (id == null || id.trim().isEmpty()) {
@@ -195,7 +198,7 @@ public class ProdukDAO {
         String sql = "UPDATE \"Produk\" SET id_kategori = ?, nama_produk = ?, deskripsi = ?, harga = ?, stok = ?, status_produk = ?, foto_produk = ?, konten_deskripsi = ?, catatan_penjual = ?, foto_produk_list = ? WHERE id_produk = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, produk.getId_kategori());
             ps.setString(2, produk.getNama_produk());
@@ -230,7 +233,7 @@ public class ProdukDAO {
         String sql = "DELETE FROM \"Produk\" WHERE id_produk = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, idProduk);
             return ps.executeUpdate() > 0;

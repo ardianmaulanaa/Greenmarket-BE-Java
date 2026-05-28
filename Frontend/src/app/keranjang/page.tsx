@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import { useUser } from "@/hooks/useUser";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 // Animation styles removed - imported globally from globals.css
 
@@ -74,8 +75,11 @@ export default function KeranjangPage() {
     const initializePage = async (uid: string) => {
       try {
         const [profileResult, keranjangResult] = await Promise.allSettled([
-          fetch(`http://localhost:5050/api/users/${uid}`),
-          fetch(`http://localhost:5050/api/keranjang/${uid}`),
+          Promise.resolve({
+            ok: true,
+            json: async () => JSON.parse(localStorage.getItem("user") || "{}"),
+          } as Response),
+          fetch(`${API_BASE_URL}/carts?user=${uid}`),
         ]);
 
         let profileOk = false;
@@ -96,7 +100,10 @@ export default function KeranjangPage() {
           keranjangData = await keranjangResponse.json().catch(() => null);
           keranjangOk = keranjangResponse.ok;
           if (!keranjangOk) {
-            showToast(keranjangData?.message || "Gagal mengambil keranjang", "error");
+            showToast(
+              keranjangData?.message || "Gagal mengambil keranjang",
+              "error",
+            );
           }
         } else {
           showToast("Gagal terhubung ke layanan keranjang", "error");
@@ -230,19 +237,16 @@ export default function KeranjangPage() {
     });
   };
 
-  const removeItem = async (idProduk: string) => {
+  const removeItem = async (idKeranjang: string) => {
     if (!userId) {
       showToast("Silakan login terlebih dahulu", "warning");
       return;
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5050/api/keranjang/${userId}/${idProduk}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/carts/${idKeranjang}`, {
+        method: "DELETE",
+      });
 
       const data = await response.json();
 
@@ -252,16 +256,10 @@ export default function KeranjangPage() {
       }
 
       setKeranjangItems((currentItems) =>
-        currentItems.filter((item) => item.produk.id_produk !== idProduk),
+        currentItems.filter((item) => item.id_keranjang !== idKeranjang),
       );
       setSelectedItems((currentItems) =>
-        currentItems.filter((idKeranjang) =>
-          keranjangItems.some(
-            (item) =>
-              item.id_keranjang === idKeranjang &&
-              item.produk.id_produk !== idProduk,
-          ),
-        ),
+        currentItems.filter((itemId) => itemId !== idKeranjang),
       );
     } catch (error) {
       console.error("Gagal menghapus keranjang:", error);
@@ -279,7 +277,7 @@ export default function KeranjangPage() {
       selectedItems.includes(item.id_keranjang),
     );
 
-    selectedProducts.forEach((item) => removeItem(item.produk.id_produk));
+    selectedProducts.forEach((item) => removeItem(item.id_keranjang));
   };
 
   const checkoutSelected = () => {
@@ -429,17 +427,17 @@ export default function KeranjangPage() {
                       setSelectedItems((currentItems) =>
                         allGroupSelected
                           ? currentItems.filter(
-                            (idKeranjang) =>
-                              !group.items.some(
-                                (item) => item.id_keranjang === idKeranjang,
-                              ),
-                          )
+                              (idKeranjang) =>
+                                !group.items.some(
+                                  (item) => item.id_keranjang === idKeranjang,
+                                ),
+                            )
                           : Array.from(
-                            new Set([
-                              ...currentItems,
-                              ...group.items.map((item) => item.id_keranjang),
-                            ]),
-                          ),
+                              new Set([
+                                ...currentItems,
+                                ...group.items.map((item) => item.id_keranjang),
+                              ]),
+                            ),
                       );
                     }}
                     type="checkbox"
@@ -538,7 +536,7 @@ export default function KeranjangPage() {
                       <div className="flex lg:flex-col gap-3 lg:items-center">
                         <button
                           type="button"
-                          onClick={() => removeItem(item.produk.id_produk)}
+                          onClick={() => removeItem(item.id_keranjang)}
                           className="text-slate-200 hover:text-red-400 font-semibold"
                         >
                           Hapus

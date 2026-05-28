@@ -7,6 +7,7 @@ public class Keranjang {
     private long id_user;
     private String id_produk;
     private Timestamp created_at;
+    private Produk produk;
 
     public Keranjang() {
     }
@@ -48,5 +49,13 @@ public class Keranjang {
 
     public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
+    }
+
+    public Produk getProduk() {
+        return produk;
+    }
+
+    public void setProduk(Produk produk) {
+        this.produk = produk;
     }
 }

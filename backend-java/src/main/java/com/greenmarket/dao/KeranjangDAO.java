@@ -2,6 +2,7 @@ package com.greenmarket.dao;
 
 import com.greenmarket.model.Keranjang;
 import com.greenmarket.util.DBConnection;
+import com.greenmarket.model.Produk;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -24,16 +25,39 @@ public class KeranjangDAO {
     public List<Keranjang> getKeranjangByUser(long idUser) {
         List<Keranjang> list = new ArrayList<>();
 
-        String sql = "SELECT * FROM \"Keranjang\" WHERE id_user = ? ORDER BY created_at DESC";
+        String sql = "SELECT k.*, p.id_produk AS produk_id, p.id_user_seller, p.id_kategori, " +
+                "p.nama_produk, p.deskripsi, p.harga, p.stok, p.status_produk, " +
+                "p.created_at AS produk_created_at, p.foto_produk, p.konten_deskripsi, p.catatan_penjual " +
+                "FROM \"Keranjang\" k " +
+                "JOIN \"Produk\" p ON k.id_produk = p.id_produk " +
+                "WHERE k.id_user = ? " +
+                "ORDER BY k.created_at DESC";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, idUser);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToKeranjang(rs));
+                    Keranjang keranjang = mapResultSetToKeranjang(rs);
+
+                    Produk produk = new Produk();
+                    produk.setId_produk(rs.getString("produk_id"));
+                    produk.setId_user_seller(rs.getInt("id_user_seller"));
+                    produk.setId_kategori(rs.getString("id_kategori"));
+                    produk.setNama_produk(rs.getString("nama_produk"));
+                    produk.setDeskripsi(rs.getString("deskripsi"));
+                    produk.setHarga(rs.getInt("harga"));
+                    produk.setStok(rs.getInt("stok"));
+                    produk.setStatus_produk(rs.getString("status_produk"));
+                    produk.setCreated_at(rs.getTimestamp("produk_created_at"));
+                    produk.setFoto_produk(rs.getString("foto_produk"));
+                    produk.setKonten_deskripsi(rs.getString("konten_deskripsi"));
+                    produk.setCatatan_penjual(rs.getString("catatan_penjual"));
+
+                    keranjang.setProduk(produk);
+                    list.add(keranjang);
                 }
             }
 
@@ -49,7 +73,7 @@ public class KeranjangDAO {
         String sql = "INSERT INTO \"Keranjang\" (id_keranjang, id_user, id_produk, created_at) VALUES (?, ?, ?, NOW())";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             String id = keranjang.getId_keranjang();
 
@@ -75,7 +99,7 @@ public class KeranjangDAO {
         String sql = "SELECT COUNT(*) FROM \"Keranjang\" WHERE id_user = ? AND id_produk = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, idUser);
             ps.setString(2, idProduk);
@@ -98,7 +122,7 @@ public class KeranjangDAO {
         String sql = "DELETE FROM \"Keranjang\" WHERE id_keranjang = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, idKeranjang);
 
@@ -116,7 +140,7 @@ public class KeranjangDAO {
         String sql = "DELETE FROM \"Keranjang\" WHERE id_user = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, idUser);
 

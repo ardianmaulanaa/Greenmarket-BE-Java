@@ -7,6 +7,7 @@ import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 // Animation styles for smooth entrance effects
 const animationStyles = `
@@ -187,8 +188,7 @@ function PesananContent() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [activeTab, setActiveTab] = useState("semua");
-  const orderMode: "buyer" | "seller" =
-    mode === "seller" ? "seller" : "buyer";
+  const orderMode: "buyer" | "seller" = mode === "seller" ? "seller" : "buyer";
   const [user, setUser] = useState({ nama: "", role: "" });
   const [buyerTransactions, setBuyerTransactions] = useState<Transaksi[]>([]);
   const [sellerTransactions, setSellerTransactions] = useState<Transaksi[]>([]);
@@ -202,9 +202,8 @@ function PesananContent() {
   const activeTransactions =
     orderMode === "seller" ? sellerTransactions : buyerTransactions;
 
-  const unpaidTransactionCount = activeTransactions.filter(
-    isUnpaidTransaction,
-  ).length;
+  const unpaidTransactionCount =
+    activeTransactions.filter(isUnpaidTransaction).length;
 
   const fetchTransactions = async (
     modeTarget: "buyer" | "seller" = orderMode,
@@ -228,8 +227,8 @@ function PesananContent() {
 
       const endpoint =
         modeTarget === "seller"
-          ? `http://localhost:5050/api/transaksi/seller/${userId}`
-          : `http://localhost:5050/api/transaksi/user/${userId}`;
+          ? `${API_BASE_URL}/transactions/seller/${userId}`
+          : `${API_BASE_URL}/transactions/user/${userId}`;
 
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -248,7 +247,10 @@ function PesananContent() {
       }
     } catch (error) {
       console.error("Gagal mengambil pesanan:", error);
-      showToast("Gagal mengambil pesanan. Periksa koneksi internet Anda.", "error");
+      showToast(
+        "Gagal mengambil pesanan. Periksa koneksi internet Anda.",
+        "error",
+      );
       alert("Terjadi kesalahan saat mengambil pesanan");
     } finally {
       setIsOrderLoading(false);
@@ -297,7 +299,7 @@ function PesananContent() {
 
     try {
       const response = await fetch(
-        `http://localhost:5050/api/transaksi/${idTransaksi}/konfirmasi-kirim`,
+        `${API_BASE_URL}/transactions/${idTransaksi}/konfirmasi-kirim`,
         {
           method: "PUT",
           headers: {
@@ -376,11 +378,11 @@ function PesananContent() {
     const details =
       orderMode === "seller"
         ? trx.detail_transaksi.filter(
-          (detail) => detail.produk?.id_user_seller === currentUserId,
-        )
+            (detail) => detail.produk?.id_user_seller === currentUserId,
+          )
         : trx.detail_transaksi.filter(
-          (detail) => detail.produk?.id_user_seller !== currentUserId,
-        );
+            (detail) => detail.produk?.id_user_seller !== currentUserId,
+          );
 
     const groups = new Map<number, DetailTransaksi[]>();
 
@@ -524,7 +526,8 @@ function PesananContent() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-4 text-[13px] font-[800] transition-all relative whitespace-nowrap uppercase tracking-wider ${activeTab === tab.id
+                  className={`px-5 py-4 text-[13px] font-[800] transition-all relative whitespace-nowrap uppercase tracking-wider ${
+                    activeTab === tab.id
                       ? "text-[#2fa84f]"
                       : "text-gray-400 hover:text-white"
                   }`}
@@ -643,7 +646,10 @@ function PesananContent() {
 
                             <div className="flex flex-wrap items-center gap-3">
                               <span className="text-[10px] font-black text-[#2fa84f] border border-[#2fa84f]/30 bg-[#2fa84f]/10 px-2.5 py-1.5 rounded-lg uppercase tracking-wider">
-                                {formatStatus(group.pembayaran?.status_pembayaran || "BELUM_BAYAR")}
+                                {formatStatus(
+                                  group.pembayaran?.status_pembayaran ||
+                                    "BELUM_BAYAR",
+                                )}
                               </span>
 
                               <p className="text-[12px] text-gray-400 font-medium flex items-center gap-1.5">
@@ -700,7 +706,7 @@ function PesananContent() {
                         </button>
 
                         {orderMode === "seller" &&
-                          group.status_pengiriman === "DIKEMAS" ? (
+                        group.status_pengiriman === "DIKEMAS" ? (
                           <button
                             type="button"
                             onClick={() =>
@@ -762,7 +768,10 @@ function PesananContent() {
                   Status Pembayaran
                 </p>
                 <p className="text-[#2fa84f] font-black">
-                  {formatStatus(selectedTracking.pembayaran?.status_pembayaran || "BELUM_BAYAR")}
+                  {formatStatus(
+                    selectedTracking.pembayaran?.status_pembayaran ||
+                      "BELUM_BAYAR",
+                  )}
                 </p>
               </div>
 

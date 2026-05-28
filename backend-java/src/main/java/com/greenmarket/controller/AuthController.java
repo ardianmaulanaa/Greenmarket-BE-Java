@@ -28,43 +28,44 @@ public class AuthController extends HttpServlet {
         setCorsHeaders(response);
         response.setStatus(HttpServletResponse.SC_OK);
     }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
 
-    setCorsHeaders(response);
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
+        setCorsHeaders(response);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-    String path = request.getPathInfo();
+        String path = request.getPathInfo();
 
-    if (path == null || path.equals("/")) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("availableEndpoints", new String[]{
-                "GET /api/auth/check",
-                "POST /api/auth/login",
-                "POST /api/auth/register"
-        });
-
-        sendResponse(response, HttpServletResponse.SC_OK, true, "Auth controller aktif", data);
-        return;
-    }
-
-    switch (path) {
-        case "/check":
+        if (path == null || path.equals("/")) {
             Map<String, Object> data = new HashMap<>();
-            data.put("status", "OK");
-            data.put("controller", "AuthController");
-            data.put("message", "Endpoint auth berhasil diakses");
+            data.put("availableEndpoints", new String[] {
+                    "GET /api/auth/check",
+                    "POST /api/auth/login",
+                    "POST /api/auth/register"
+            });
 
-            sendResponse(response, HttpServletResponse.SC_OK, true, "Backend auth aktif", data);
-            break;
+            sendResponse(response, HttpServletResponse.SC_OK, true, "Auth controller aktif", data);
+            return;
+        }
 
-        default:
-            sendResponse(response, HttpServletResponse.SC_NOT_FOUND, false, "Endpoint GET tidak ditemukan", null);
-            break;
+        switch (path) {
+            case "/check":
+                Map<String, Object> data = new HashMap<>();
+                data.put("status", "OK");
+                data.put("controller", "AuthController");
+                data.put("message", "Endpoint auth berhasil diakses");
+
+                sendResponse(response, HttpServletResponse.SC_OK, true, "Backend auth aktif", data);
+                break;
+
+            default:
+                sendResponse(response, HttpServletResponse.SC_NOT_FOUND, false, "Endpoint GET tidak ditemukan", null);
+                break;
+        }
     }
-}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -111,7 +112,17 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        boolean passwordMatch = BCrypt.checkpw(authRequest.password, user.getPassword());
+        String storedPassword = user.getPassword();
+
+        if (storedPassword != null) {
+            if (storedPassword.startsWith("$2b$")) {
+                storedPassword = "$2a$" + storedPassword.substring(4);
+            } else if (storedPassword.startsWith("$2y$")) {
+                storedPassword = "$2a$" + storedPassword.substring(4);
+            }
+        }
+
+        boolean passwordMatch = storedPassword != null && BCrypt.checkpw(authRequest.password, storedPassword);
 
         if (!passwordMatch) {
             sendResponse(response, HttpServletResponse.SC_UNAUTHORIZED, false, "Password salah", null);
@@ -131,7 +142,8 @@ public class AuthController extends HttpServlet {
         AuthRequest authRequest = readRequestBody(request);
 
         if (authRequest.username == null || authRequest.email == null || authRequest.password == null) {
-            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Username, email, dan password wajib diisi", null);
+            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Username, email, dan password wajib diisi", null);
             return;
         }
 
@@ -180,8 +192,7 @@ public class AuthController extends HttpServlet {
             int status,
             boolean success,
             String message,
-            Object data
-    ) throws IOException {
+            Object data) throws IOException {
 
         response.setStatus(status);
 

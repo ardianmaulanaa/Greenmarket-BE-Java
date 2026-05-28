@@ -7,6 +7,7 @@ import Script from "next/script";
 import { useToast } from "@/hooks/useToast";
 import { useUser } from "@/hooks/useUser";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Produk {
   id_produk: string;
@@ -92,9 +93,7 @@ function PembayaranContent() {
 
   const fetchMetodePembayaran = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5050/api/metode-pembayaran",
-      );
+      const response = await fetch(`${API_BASE_URL}/payment-methods`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -123,9 +122,7 @@ function PembayaranContent() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5050/api/alamat/${uid}`,
-      );
+      const response = await fetch(`${API_BASE_URL}/addresses?user=${uid}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -167,18 +164,16 @@ function PembayaranContent() {
 
     try {
       setIsPaymentLoading(true);
-      const response = await fetch(
-        `http://localhost:5050/api/products/${produkId}`,
-      );
-      const data = await response.json();
+      const response = await fetch(`${API_BASE_URL}/products/${produkId}`);
+      const result = await response.json();
 
       if (!response.ok) {
-        showToast(data.message || "Gagal mengambil data produk", "error");
+        showToast(result.message || "Gagal mengambil data produk", "error");
         router.push("/dashboard-buyer");
         return;
       }
 
-      setProduct(data);
+      setProduct(result.data);
     } catch (error) {
       console.error("Gagal mengambil produk:", error);
       showToast("Terjadi kesalahan saat mengambil produk", "error");
@@ -190,7 +185,7 @@ function PembayaranContent() {
 
   const fetchJasaKirim = async () => {
     try {
-      const response = await fetch("http://localhost:5050/api/jasa-kirim");
+      const response = await fetch(`${API_BASE_URL}/shipping-services`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -233,9 +228,9 @@ function PembayaranContent() {
 
   const subtotal = isCartCheckout
     ? checkoutItems.reduce(
-      (total, item) => total + item.harga * item.kuantitas,
-      0,
-    )
+        (total, item) => total + item.harga * item.kuantitas,
+        0,
+      )
     : (product?.harga || 0) * quantity;
   const ongkir = selectedShippingData?.harga_pengiriman || 0;
   const total = subtotal + ongkir;
@@ -302,25 +297,27 @@ function PembayaranContent() {
     try {
       const requestBody = isCartCheckout
         ? {
-          id_user: Number(userId),
-          id_alamat: selectedAddress,
-          id_jasa_kirim: selectedShipping,
-          id_metode_pembayaran: selectedPayment,
-          items: checkoutItems.map((item) => ({
-            id_produk: item.id_produk,
-            kuantitas: item.kuantitas,
-          })),
-        }
+            id_user: Number(userId),
+            id_alamat: selectedAddress,
+            id_jasa_kirim: selectedShipping,
+            id_metode_pembayaran: selectedPayment,
+            total_harga: total,
+            items: checkoutItems.map((item) => ({
+              id_produk: item.id_produk,
+              kuantitas: item.kuantitas,
+            })),
+          }
         : {
-          id_user: Number(userId),
-          id_produk: product!.id_produk,
-          id_alamat: selectedAddress,
-          id_jasa_kirim: selectedShipping,
-          id_metode_pembayaran: selectedPayment,
-          kuantitas: quantity,
-        };
+            id_user: Number(userId),
+            id_produk: product!.id_produk,
+            id_alamat: selectedAddress,
+            id_jasa_kirim: selectedShipping,
+            id_metode_pembayaran: selectedPayment,
+            kuantitas: quantity,
+            total_harga: total,
+          };
 
-      const response = await fetch("http://localhost:5050/api/transaksi", {
+      const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -335,37 +332,46 @@ function PembayaranContent() {
         return;
       }
 
+      const createdTransaction = data.data?.transaksi;
+
+      if (!createdTransaction) {
+        setErrorMessage(
+          "Transaksi berhasil dibuat, tetapi data transaksi tidak dikirim dari server.",
+        );
+        return;
+      }
+
       const paymentData = isCartCheckout
         ? {
-          id_transaksi: data.transaksi.id_transaksi,
-          id_user: Number(userId),
-          items: checkoutItems,
-          id_alamat: selectedAddress,
-          id_jasa_kirim: selectedShipping,
-          id_metode_pembayaran: selectedPayment,
-          jasa_kirim: selectedShippingData?.nama_jasa || "",
-          ongkir,
-          subtotal,
-          total_harga: total,
-          status_transaksi: data.transaksi.status_transaksi,
-          status_pembayaran: data.transaksi.pembayaran?.status_pembayaran,
-        }
+            id_transaksi: createdTransaction.id_transaksi,
+            id_user: Number(userId),
+            items: checkoutItems,
+            id_alamat: selectedAddress,
+            id_jasa_kirim: selectedShipping,
+            id_metode_pembayaran: selectedPayment,
+            jasa_kirim: selectedShippingData?.nama_jasa || "",
+            ongkir,
+            subtotal,
+            total_harga: total,
+            status_transaksi: createdTransaction.status_transaksi,
+            status_pembayaran: createdTransaction.pembayaran?.status_pembayaran,
+          }
         : {
-          id_transaksi: data.transaksi.id_transaksi,
-          id_user: Number(userId),
-          id_produk: product!.id_produk,
-          nama_produk: product!.nama_produk,
-          quantity,
-          id_alamat: selectedAddress,
-          id_jasa_kirim: selectedShipping,
-          id_metode_pembayaran: selectedPayment,
-          jasa_kirim: selectedShippingData?.nama_jasa || "",
-          ongkir,
-          subtotal,
-          total_harga: total,
-          status_transaksi: data.transaksi.status_transaksi,
-          status_pembayaran: data.transaksi.pembayaran?.status_pembayaran,
-        };
+            id_transaksi: createdTransaction.id_transaksi,
+            id_user: Number(userId),
+            id_produk: product!.id_produk,
+            nama_produk: product!.nama_produk,
+            quantity,
+            id_alamat: selectedAddress,
+            id_jasa_kirim: selectedShipping,
+            id_metode_pembayaran: selectedPayment,
+            jasa_kirim: selectedShippingData?.nama_jasa || "",
+            ongkir,
+            subtotal,
+            total_harga: total,
+            status_transaksi: createdTransaction.status_transaksi,
+            status_pembayaran: createdTransaction.pembayaran?.status_pembayaran,
+          };
 
       localStorage.setItem("paymentData", JSON.stringify(paymentData));
 
@@ -467,7 +473,17 @@ function PembayaranContent() {
               }}
               className="group mr-1 flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 shadow-[0_0_20px_rgba(47,168,79,0.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2fa84f]/45 hover:bg-white/10 hover:text-white hover:shadow-[0_6px_28px_rgba(47,168,79,0.28)]"
             >
-              <svg className="shrink-0 transition-transform duration-300 group-hover:-translate-x-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="shrink-0 transition-transform duration-300 group-hover:-translate-x-1"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="19" y1="12" x2="5" y2="12" />
                 <polyline points="12 19 5 12 12 5" />
               </svg>
@@ -566,7 +582,11 @@ function PembayaranContent() {
             </Link>
           </div>
         </nav>
-        <Nav variant="pembayaran" user={user || undefined} handleLogout={handleLogout} />
+        <Nav
+          variant="pembayaran"
+          user={user || undefined}
+          handleLogout={handleLogout}
+        />
 
         {/* CONTENT */}
         <main className="max-w-[1280px] mx-auto pt-[110px] px-6 pb-16 relative z-10">
@@ -730,10 +750,11 @@ function PembayaranContent() {
                     {addresses.map((address) => (
                       <label
                         key={address.id_alamat}
-                        className={`block border rounded-[18px] p-4 cursor-pointer transition-all ${selectedAddress === address.id_alamat
+                        className={`block border rounded-[18px] p-4 cursor-pointer transition-all ${
+                          selectedAddress === address.id_alamat
                             ? "border-[#2fa84f] bg-[#eef9f0]"
                             : "border-gray-300 bg-white"
-                          }`}
+                        }`}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div>
@@ -851,16 +872,18 @@ function PembayaranContent() {
                             onClick={() => {
                               setTempSelectedShipping(item.id_jasa);
                             }}
-                            className={`w-full flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-left transition-all ${isSelected
+                            className={`w-full flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-left transition-all ${
+                              isSelected
                                 ? "bg-[#eef9f0]"
                                 : "bg-white hover:bg-gray-50"
-                              }`}
+                            }`}
                           >
                             <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${isSelected
+                              className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
+                                isSelected
                                   ? "border-[#2fa84f]"
                                   : "border-gray-400"
-                                }`}
+                              }`}
                             >
                               {isSelected && (
                                 <div className="w-2.5 h-2.5 rounded-full bg-[#2fa84f]" />

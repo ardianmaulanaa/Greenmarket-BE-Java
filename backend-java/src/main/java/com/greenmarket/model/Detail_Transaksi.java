@@ -7,6 +7,7 @@ public class Detail_Transaksi {
     private int kuantitas;
     private int harga_satuan;
     private int subtotal;
+    private Produk produk;
 
     public Detail_Transaksi() {
     }
@@ -66,5 +67,13 @@ public class Detail_Transaksi {
 
     public void setSubtotal(int subtotal) {
         this.subtotal = subtotal;
+    }
+
+    public Produk getProduk() {
+        return produk;
+    }
+
+    public void setProduk(Produk produk) {
+        this.produk = produk;
     }
 }

@@ -7,8 +7,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import { motion } from "framer-motion";
 import Nav from "@/components/navbar";
-
-const API_BASE_URL = "http://localhost:8080/backend-java-1.0-SNAPSHOT/api";
+import { API_BASE_URL } from "@/lib/api";
 
 const animationStyles = `
   @keyframes fadeInUp {
@@ -107,7 +106,11 @@ interface Kategori {
 
 type NotificationState = { type: "success" | "error"; message: string } | null;
 
-function FormNotification({ notification }: { notification: NotificationState }) {
+function FormNotification({
+  notification,
+}: {
+  notification: NotificationState;
+}) {
   if (!notification) return null;
 
   const isSuccess = notification.type === "success";
@@ -136,11 +139,29 @@ function FormNotification({ notification }: { notification: NotificationState })
           }`}
         >
           {isSuccess ? (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           ) : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -148,7 +169,9 @@ function FormNotification({ notification }: { notification: NotificationState })
           )}
         </span>
 
-        <p className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}>
+        <p
+          className={`whitespace-nowrap text-xs font-semibold ${isSuccess ? "text-[#b8f5c8]" : "text-red-100"}`}
+        >
           {text}
         </p>
       </motion.div>
@@ -180,7 +203,7 @@ export default function DashboardBuyer() {
       showToast(message, type);
       setNotification({ type, message });
     },
-    [showToast]
+    [showToast],
   );
 
   useEffect(() => {
@@ -229,7 +252,9 @@ export default function DashboardBuyer() {
 
   const handlePrevSlide = () => {
     setPrevSlide(currentSlide);
-    setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
+    setCurrentSlide(
+      (prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length,
+    );
     setIsGoingForward(false);
   };
 
@@ -414,9 +439,15 @@ export default function DashboardBuyer() {
   };
 
   const getCategoryName = (product: Produk) => {
-    const matchedCategory = categories.find((category) => category.id_kategori === product.id_kategori);
+    const matchedCategory = categories.find(
+      (category) => category.id_kategori === product.id_kategori,
+    );
 
-    return product.kategori?.nama_kategori || matchedCategory?.nama_kategori || "Eco Product";
+    return (
+      product.kategori?.nama_kategori ||
+      matchedCategory?.nama_kategori ||
+      "Eco Product"
+    );
   };
 
   if (isPageLoading) {
@@ -468,7 +499,16 @@ export default function DashboardBuyer() {
               onClick={() => setShowSellerPopup(false)}
               className="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -574,7 +614,14 @@ export default function DashboardBuyer() {
             onClick={handlePrevSlide}
             className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/20 z-20"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
@@ -583,7 +630,14 @@ export default function DashboardBuyer() {
             onClick={handleNextSlide}
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all border border-white/20 z-20"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
@@ -594,14 +648,18 @@ export default function DashboardBuyer() {
                 key={index}
                 onClick={() => handleDotClick(index)}
                 className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentSlide ? "bg-[#2fa84f] w-6" : "bg-white/40 hover:bg-white/60"
+                  index === currentSlide
+                    ? "bg-[#2fa84f] w-6"
+                    : "bg-white/40 hover:bg-white/60"
                 }`}
               />
             ))}
           </div>
         </div>
 
-        <div className={`flex flex-col lg:flex-row gap-8 ${shouldAnimate ? "animate-fade-in delay-200" : "opacity-0"}`}>
+        <div
+          className={`flex flex-col lg:flex-row gap-8 ${shouldAnimate ? "animate-fade-in delay-200" : "opacity-0"}`}
+        >
           <aside className="w-full lg:w-[280px] shrink-0">
             <div
               className={`bg-[#1a1f1b]/80 backdrop-blur-xl rounded-[32px] p-6 border border-white/5 shadow-2xl sticky top-28 ${
@@ -623,8 +681,12 @@ export default function DashboardBuyer() {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedCategories.includes(category.id_kategori)}
-                      onChange={() => handleCategoryChange(category.id_kategori)}
+                      checked={selectedCategories.includes(
+                        category.id_kategori,
+                      )}
+                      onChange={() =>
+                        handleCategoryChange(category.id_kategori)
+                      }
                       className="accent-[#2fa84f] w-4 h-4 cursor-pointer bg-white/5 border-white/10 rounded"
                     />
 
@@ -674,7 +736,10 @@ export default function DashboardBuyer() {
                     className={`relative group ${shouldAnimate ? "animate-fade-in-up" : "opacity-0"}`}
                     style={shouldAnimate ? { animationDelay: "500ms" } : {}}
                   >
-                    <Link href={`/katalog-detail/${p.id_produk}`} className="no-underline block h-full">
+                    <Link
+                      href={`/katalog-detail/${p.id_produk}`}
+                      className="no-underline block h-full"
+                    >
                       <div className="bg-[#1a1f1b]/90 backdrop-blur-md border border-white/5 rounded-[28px] overflow-hidden hover:border-[#2fa84f]/50 transition-all duration-500 flex flex-col relative shadow-xl hover:-translate-y-1 h-full">
                         <div className="relative aspect-square bg-[#0a110b] overflow-hidden">
                           <img
@@ -704,11 +769,19 @@ export default function DashboardBuyer() {
 
                           <div className="flex justify-between items-center pt-4 border-t border-white/5">
                             <span className="text-[9px] text-gray-500 uppercase font-black truncate max-w-[100px] flex items-center gap-1.5">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <svg
+                                width="10"
+                                height="10"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                              >
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                 <circle cx="12" cy="7" r="4" />
                               </svg>
-                              {p.seller?.username || `Seller ${p.id_user_seller || ""}`}
+                              {p.seller?.username ||
+                                `Seller ${p.id_user_seller || ""}`}
                             </span>
 
                             <span className="text-[9px] text-[#2fa84f] bg-[#2fa84f]/10 px-2 py-1 rounded font-black uppercase">

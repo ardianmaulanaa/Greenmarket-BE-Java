@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Produk {
   id_produk: string;
@@ -70,7 +71,7 @@ export default function TokoPage() {
         setLoading(true);
 
         const response = await fetch(
-          `http://localhost:5050/api/products?userId=${sellerId}`,
+          `${API_BASE_URL}/products?seller=${sellerId}`,
         );
 
         if (!response.ok) {
@@ -81,7 +82,10 @@ export default function TokoPage() {
         setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error mengambil produk toko:", error);
-        showToast("Gagal memuat produk toko. Periksa koneksi internet Anda.", "error");
+        showToast(
+          "Gagal memuat produk toko. Periksa koneksi internet Anda.",
+          "error",
+        );
         setProducts([]);
       } finally {
         setLoading(false);
@@ -224,7 +228,10 @@ export default function TokoPage() {
               const userRole = localStorage.getItem("userRole");
 
               if (userRole === "GUEST") {
-                showToast("Fitur ini tidak tersedia pada akun guest.", "warning");
+                showToast(
+                  "Fitur ini tidak tersedia pada akun guest.",
+                  "warning",
+                );
                 return;
               }
 

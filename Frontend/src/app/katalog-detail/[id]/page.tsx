@@ -7,6 +7,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Produk {
   id_produk: string;
@@ -75,16 +76,17 @@ export default function DetailProdukPage() {
       }
 
       try {
-        const response = await fetch(
-          `http://localhost:5050/api/products/${productId}`,
-        );
+        const response = await fetch(`${API_BASE_URL}/products/${productId}`);
         if (!response.ok) throw new Error("Gagal mengambil detail produk");
 
-        const data = await response.json();
-        setProduct(data);
+        const result = await response.json();
+        setProduct(result.data);
       } catch (error) {
         console.error("Error Fetching Product:", error);
-        showToast("Gagal memuat detail produk. Periksa koneksi internet Anda.", "error");
+        showToast(
+          "Gagal memuat detail produk. Periksa koneksi internet Anda.",
+          "error",
+        );
       } finally {
         setIsPageLoading(false);
       }
@@ -123,29 +125,33 @@ export default function DetailProdukPage() {
     }
 
     if (currentUserId === product.id_user_seller) {
-      showToast("Produk sendiri bisa dikelola lewat panel inventaris.", "warning");
+      showToast(
+        "Produk sendiri bisa dikelola lewat panel inventaris.",
+        "warning",
+      );
       router.push(`/panel-penjual?edit=${product.id_produk}`);
       return;
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:5050/api/keranjang/${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id_produk: product.id_produk,
-          }),
+      const response = await fetch(`${API_BASE_URL}/carts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          id_user: Number(userId),
+          id_produk: product.id_produk,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        showToast(data.message || "Gagal memasukkan produk ke keranjang.", "error");
+        showToast(
+          data.message || "Gagal memasukkan produk ke keranjang.",
+          "error",
+        );
         return;
       }
 
@@ -166,7 +172,10 @@ export default function DetailProdukPage() {
     }
 
     if (currentUserId === product.id_user_seller) {
-      showToast("Produk sendiri tidak bisa dibeli. Buka panel inventaris untuk mengedit.", "warning");
+      showToast(
+        "Produk sendiri tidak bisa dibeli. Buka panel inventaris untuk mengedit.",
+        "warning",
+      );
       router.push(`/panel-penjual?edit=${product.id_produk}`);
       return;
     }
@@ -467,7 +476,10 @@ export default function DetailProdukPage() {
               const userRole = localStorage.getItem("userRole");
 
               if (userRole === "GUEST") {
-                showToast("Fitur ini tidak tersedia pada akun guest.", "warning");
+                showToast(
+                  "Fitur ini tidak tersedia pada akun guest.",
+                  "warning",
+                );
                 return;
               }
 
@@ -536,10 +548,11 @@ export default function DetailProdukPage() {
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
-                    className={`relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx
+                    className={`relative w-20 h-20 shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${
+                      activeImage === idx
                         ? "border-[#2fa84f] shadow-[0_0_15px_rgba(47,168,79,0.3)]"
                         : "border-white/10 hover:border-[#2fa84f]/50"
-                      }`}
+                    }`}
                   >
                     <Image
                       src={foto || "https://via.placeholder.com/1000"}
@@ -753,12 +766,12 @@ export default function DetailProdukPage() {
                 <span className="font-black text-white text-sm">
                   {product.seller?.createdAt
                     ? new Date(product.seller.createdAt).toLocaleDateString(
-                      "id-ID",
-                      {
-                        month: "short",
-                        year: "numeric",
-                      },
-                    )
+                        "id-ID",
+                        {
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )
                     : "Baru"}
                 </span>
               </div>

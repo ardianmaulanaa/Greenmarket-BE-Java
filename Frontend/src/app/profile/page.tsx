@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/useToast";
 import { useUser } from "@/hooks/useUser";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -78,8 +79,9 @@ export default function ProfilePage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5050/api/users/${uid}`);
-      const data = await response.json();
+      const response = await fetch(`${API_BASE_URL}/users/${uid}`);
+      const result = await response.json();
+      const data = result.data;
 
       if (!response.ok) {
         showToast(data.message || "Gagal mengambil data profile", "error");
@@ -147,7 +149,7 @@ export default function ProfilePage() {
     setIsSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:5050/api/users/${userId}`,
+        `${API_BASE_URL}/users/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -167,7 +169,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const updatedUser = data.user;
+      const updatedUser = data.data;
       const latestRole = normalizeRole(updatedUser.role || "BUYER");
 
       showToast(data.message || "Profile berhasil diupdate", "success");

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { useUser } from "@/hooks/useUser";
+import { API_BASE_URL } from "@/lib/api";
 
 // Animation styles removed - imported globally from globals.css
 
@@ -71,7 +72,7 @@ export default function RegisterPenjual() {
 
     try {
       const response = await fetch(
-        `http://localhost:5050/api/users/upgrade/${userId}`,
+        `${API_BASE_URL}/users/upgrade/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -95,7 +96,7 @@ export default function RegisterPenjual() {
       const currentData = JSON.parse(localStorage.getItem("user") || "{}");
 
       const updatedUser = data?.user
-        ? data.user
+        ? data.data
         : {
             ...currentData,
             role: "SELLER",

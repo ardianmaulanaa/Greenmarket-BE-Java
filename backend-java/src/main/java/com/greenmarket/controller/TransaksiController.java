@@ -10,8 +10,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-@WebServlet("/api/transactions/*")
+@WebServlet({ "/api/transactions/*", "/api/transaksi/*" })
 public class TransaksiController extends BaseApiController {
 
     private final TransaksiService transaksiService = new TransaksiService();
@@ -30,6 +32,7 @@ public class TransaksiController extends BaseApiController {
 
         String path = request.getPathInfo();
         String userParam = request.getParameter("user");
+        String sellerParam = request.getParameter("seller");
 
         if (userParam != null && !userParam.trim().isEmpty()) {
             try {
@@ -46,8 +49,54 @@ public class TransaksiController extends BaseApiController {
             }
         }
 
+        if (sellerParam != null && !sellerParam.trim().isEmpty()) {
+            try {
+                int idSeller = Integer.parseInt(sellerParam);
+                List<Transaksi> list = transaksiService.getTransaksiBySeller(idSeller);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(gson.toJson(list));
+                return;
+
+            } catch (NumberFormatException e) {
+                sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID seller tidak valid", null);
+                return;
+            }
+        }
+
+        if (path != null && path.startsWith("/user/")) {
+            try {
+                int idUser = Integer.parseInt(path.substring("/user/".length()));
+                List<Transaksi> list = transaksiService.getTransaksiByUser(idUser);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(gson.toJson(list));
+                return;
+
+            } catch (NumberFormatException e) {
+                sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID user tidak valid", null);
+                return;
+            }
+        }
+
+        if (path != null && path.startsWith("/seller/")) {
+            try {
+                int idSeller = Integer.parseInt(path.substring("/seller/".length()));
+                List<Transaksi> list = transaksiService.getTransaksiBySeller(idSeller);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(gson.toJson(list));
+                return;
+
+            } catch (NumberFormatException e) {
+                sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID seller tidak valid", null);
+                return;
+            }
+        }
+
         if (path == null || path.equals("/")) {
-            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Parameter user atau ID transaksi wajib dikirim", null);
+            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Parameter user atau ID transaksi wajib dikirim", null);
             return;
         }
 
@@ -69,10 +118,21 @@ public class TransaksiController extends BaseApiController {
         prepareJsonResponse(response);
 
         Transaksi transaksi = readRequestBody(request, Transaksi.class);
-        boolean success = transaksiService.createTransaksi(transaksi);
+
+        boolean success;
+
+        if (transaksi.getItems() != null && !transaksi.getItems().isEmpty()) {
+            success = transaksiService.createTransaksiMultiProduk(transaksi);
+        } else {
+            success = transaksiService.createTransaksi(transaksi);
+        }
 
         if (success) {
-            sendResponse(response, HttpServletResponse.SC_CREATED, true, "Transaksi berhasil dibuat", null);
+            Map<String, Object> data = new HashMap<>();
+            data.put("transaksi", transaksi);
+            data.put("midtransToken", null);
+
+            sendResponse(response, HttpServletResponse.SC_CREATED, true, "Transaksi berhasil dibuat", data);
         } else {
             sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Transaksi gagal dibuat", null);
         }
@@ -84,17 +144,37 @@ public class TransaksiController extends BaseApiController {
 
         prepareJsonResponse(response);
 
+        String path = request.getPathInfo();
+
+        if (path != null && path.endsWith("/konfirmasi-kirim")) {
+            String idTransaksi = path.replace("/konfirmasi-kirim", "").replace("/", "");
+            KonfirmasiKirimRequest body = readRequestBody(request, KonfirmasiKirimRequest.class);
+
+            boolean success = transaksiService.konfirmasiKirim(idTransaksi, body.id_seller);
+
+            if (success) {
+                sendResponse(response, HttpServletResponse.SC_OK, true, "Pesanan berhasil dikonfirmasi dikirim", null);
+            } else {
+                sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Gagal konfirmasi kirim", null);
+            }
+
+            return;
+        }
+
         Transaksi transaksi = readRequestBody(request, Transaksi.class);
 
         boolean success = transaksiService.updateStatusTransaksi(
                 transaksi.getId_transaksi(),
-                transaksi.getStatus_transaksi()
-        );
+                transaksi.getStatus_transaksi());
 
         if (success) {
             sendResponse(response, HttpServletResponse.SC_OK, true, "Status transaksi berhasil diupdate", null);
         } else {
             sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "Status transaksi gagal diupdate", null);
         }
+    }
+
+    private static class KonfirmasiKirimRequest {
+        int id_seller;
     }
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { useUser } from "@/hooks/useUser";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 // Animation styles removed - imported globally from globals.css
 
@@ -35,8 +36,7 @@ interface SelectOption {
 
 const MAX_PRODUCT_PHOTOS = 4;
 const MAX_PRODUCT_IMAGE_SIZE_MB = 5;
-const MAX_PRODUCT_IMAGE_SIZE_BYTES =
-  MAX_PRODUCT_IMAGE_SIZE_MB * 1024 * 1024;
+const MAX_PRODUCT_IMAGE_SIZE_BYTES = MAX_PRODUCT_IMAGE_SIZE_MB * 1024 * 1024;
 
 function ProductSelect({
   value,
@@ -71,17 +71,19 @@ function ProductSelect({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className={`flex w-full items-center justify-between rounded-xl border bg-white/5 px-3 py-3 text-left text-white outline-none transition-all ${isOpen
+        className={`flex w-full items-center justify-between rounded-xl border bg-white/5 px-3 py-3 text-left text-white outline-none transition-all ${
+          isOpen
             ? "border-[#2fa84f] shadow-[0_0_10px_rgba(47,168,79,0.3)]"
             : "border-white/10 hover:border-white/20"
-          }`}
+        }`}
       >
         <span className="truncate">
           {selectedOption?.label || "Pilih kategori"}
         </span>
         <svg
-          className={`ml-3 h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180 text-[#2fa84f]" : ""
-            }`}
+          className={`ml-3 h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+            isOpen ? "rotate-180 text-[#2fa84f]" : ""
+          }`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -106,10 +108,11 @@ function ProductSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors ${isSelected
+                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors ${
+                  isSelected
                     ? "bg-[#2fa84f]/15 text-[#64d681]"
                     : "text-slate-200 hover:bg-white/7 hover:text-white"
-                  }`}
+                }`}
               >
                 <span>{option.label}</span>
                 {isSelected && (
@@ -180,8 +183,8 @@ export default function PanelPenjual() {
   const fetchInitialData = async (uid: string) => {
     try {
       const [catRes, prodRes] = await Promise.all([
-        fetch("http://localhost:5050/api/categories"),
-        fetch(`http://localhost:5050/api/products?userId=${uid}`),
+        fetch(`${API_BASE_URL}/categories`),
+        fetch(`${API_BASE_URL}/products?seller=${uid}`),
       ]);
 
       if (!catRes.ok || !prodRes.ok)
@@ -406,7 +409,11 @@ export default function PanelPenjual() {
       return;
     }
 
-    if (formData.stok === "" || Number(formData.stok) < 0 || !Number.isInteger(Number(formData.stok))) {
+    if (
+      formData.stok === "" ||
+      Number(formData.stok) < 0 ||
+      !Number.isInteger(Number(formData.stok))
+    ) {
       showToast("Stok produk tidak valid.", "warning");
       setIsSubmitting(false);
       return;
@@ -431,41 +438,44 @@ export default function PanelPenjual() {
     }
 
     const url = editingProduct
-      ? `http://localhost:5050/api/products/${editingProduct.id_produk}`
-      : "http://localhost:5050/api/products";
+      ? `${API_BASE_URL}/products/${editingProduct.id_produk}`
+      : `${API_BASE_URL}/products`;
 
     const method = editingProduct ? "PUT" : "POST";
 
-    const payload = new FormData();
-    payload.append("nama_produk", formData.nama_produk);
-    payload.append("harga", String(Number(formData.harga)));
-    payload.append("stok", String(Number(formData.stok)));
-    payload.append("id_kategori", formData.id_kategori);
-    payload.append("deskripsi", formData.deskripsi);
-    payload.append("konten_deskripsi", formData.konten_deskripsi);
-    payload.append("catatan_penjual", formData.catatan_penjual || "");
-    payload.append("id_user", userId);
+    const existingImages =
+      editingProduct?.foto_produk_list &&
+      editingProduct.foto_produk_list.length > 0
+        ? editingProduct.foto_produk_list
+        : editingProduct?.foto_produk
+          ? [editingProduct.foto_produk]
+          : [];
 
-    imageFiles.forEach((file) => {
-      payload.append("foto_produk_list", file);
-    });
+    const uploadedImages =
+      imagePreviews.length > 0 ? imagePreviews : existingImages;
 
-    if (editingProduct && imageFiles.length === 0) {
-      const existingList =
-        editingProduct.foto_produk_list &&
-          editingProduct.foto_produk_list.length > 0
-          ? editingProduct.foto_produk_list
-          : editingProduct.foto_produk
-            ? [editingProduct.foto_produk]
-            : [];
-
-      payload.append("existing_foto_produk_list", JSON.stringify(existingList));
-    }
+    const payload = {
+      id_produk: editingProduct?.id_produk,
+      id_user_seller: Number(userId),
+      id_kategori: formData.id_kategori,
+      nama_produk: formData.nama_produk,
+      deskripsi: formData.deskripsi,
+      harga: Number(formData.harga),
+      stok: Number(formData.stok),
+      status_produk: "AKTIF",
+      foto_produk: uploadedImages[0] || "",
+      foto_produk_list: uploadedImages,
+      konten_deskripsi: formData.konten_deskripsi,
+      catatan_penjual: formData.catatan_penjual || "",
+    };
 
     try {
       const response = await fetch(url, {
         method,
-        body: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -500,7 +510,7 @@ export default function PanelPenjual() {
 
     try {
       const response = await fetch(
-        `http://localhost:5050/api/products/${deleteModal.productId}?userId=${userId}`,
+        `${API_BASE_URL}/products/${deleteModal.productId}`,
         { method: "DELETE" },
       );
 
@@ -853,31 +863,29 @@ export default function PanelPenjual() {
 
                     {Array.from({
                       length: MAX_PRODUCT_PHOTOS - imagePreviews.length,
-                    }).map(
-                      (_, i) => (
-                        <label
-                          key={`slot-${i}`}
-                          className="aspect-square rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-[#2fa84f]/40 hover:bg-white/[0.03] transition-all"
-                        >
-                          <span className="text-white/20 text-3xl leading-none">
-                            +
-                          </span>
-                          <span className="text-[10px] text-gray-600 mt-1">
-                            Tambah
-                          </span>
-                          <input
-                            ref={(el) => {
-                              slotInputRefs.current[i] = el;
-                            }}
-                            type="file"
-                            accept=".png,.jpg,.jpeg"
-                            multiple
-                            className="hidden"
-                            onChange={handleFileChange}
-                          />
-                        </label>
-                      ),
-                    )}
+                    }).map((_, i) => (
+                      <label
+                        key={`slot-${i}`}
+                        className="aspect-square rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-[#2fa84f]/40 hover:bg-white/[0.03] transition-all"
+                      >
+                        <span className="text-white/20 text-3xl leading-none">
+                          +
+                        </span>
+                        <span className="text-[10px] text-gray-600 mt-1">
+                          Tambah
+                        </span>
+                        <input
+                          ref={(el) => {
+                            slotInputRefs.current[i] = el;
+                          }}
+                          type="file"
+                          accept=".png,.jpg,.jpeg"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    ))}
                   </div>
                 )}
 

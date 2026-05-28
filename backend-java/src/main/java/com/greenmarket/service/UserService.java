@@ -135,7 +135,13 @@ public class UserService {
         }
 
         if (user.getRole() == null || user.getRole().trim().isEmpty()) {
-            user.setRole("BUYER");
+            User existingUser = userDAO.getUserById(user.getId());
+
+            if (existingUser == null) {
+                return false;
+            }
+
+            user.setRole(existingUser.getRole());
         } else {
             user.setRole(user.getRole().toUpperCase());
         }
@@ -190,5 +196,13 @@ public class UserService {
         }
 
         return userDAO.isEmailExists(email);
+    }
+
+    public boolean upgradeUserRole(int id) {
+        if (id <= 0) {
+            return false;
+        }
+
+        return userDAO.upgradeUserRole(id);
     }
 }
