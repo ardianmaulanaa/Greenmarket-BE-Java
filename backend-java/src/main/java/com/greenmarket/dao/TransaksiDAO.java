@@ -42,6 +42,49 @@ public class TransaksiDAO {
         return produk;
     }
 
+    private void mapProdukRelations(ResultSet rs, Produk produk) throws SQLException {
+        try {
+            String namaKategori = rs.getString("nama_kategori");
+
+            if (namaKategori != null) {
+                KategoriProduk kategori = new KategoriProduk();
+                kategori.setId_kategori(produk.getId_kategori());
+                kategori.setNama_kategori(namaKategori);
+                produk.setKategori(kategori);
+            }
+        } catch (SQLException ignored) {
+        }
+
+        try {
+            int sellerId = rs.getInt("seller_id");
+
+            if (!rs.wasNull()) {
+                User seller = new User();
+                seller.setId(sellerId);
+                seller.setUsername(rs.getString("seller_username"));
+                seller.setEmail(rs.getString("seller_email"));
+                seller.setPassword(null);
+                seller.setRole(rs.getString("seller_role"));
+
+                String idToko = rs.getString("id_toko");
+
+                if (idToko != null) {
+                    Toko toko = new Toko();
+                    toko.setId_toko(idToko);
+                    toko.setId_user(sellerId);
+                    toko.setNama_toko(rs.getString("nama_toko"));
+                    toko.setEmail_bisnis(rs.getString("email_bisnis"));
+                    toko.setAlamat_toko(rs.getString("alamat_toko"));
+                    toko.setCreated_at(rs.getTimestamp("toko_created_at"));
+                    seller.setToko(toko);
+                }
+
+                produk.setSeller(seller);
+            }
+        } catch (SQLException ignored) {
+        }
+    }
+
     private void loadTransaksiRelations(Connection conn, Transaksi transaksi) throws SQLException {
         transaksi.setDetail_transaksi(getDetailTransaksiByTransaksi(conn, transaksi.getId_transaksi()));
         transaksi.setAlamat(getAlamatById(conn, transaksi.getId_alamat()));
@@ -57,9 +100,16 @@ public class TransaksiDAO {
 
         String sql = "SELECT d.*, p.id_produk AS produk_id, p.id_user_seller, p.id_kategori, " +
                 "p.nama_produk, p.deskripsi, p.harga, p.stok, p.status_produk, " +
-                "p.created_at AS produk_created_at, p.foto_produk, p.konten_deskripsi, p.catatan_penjual " +
+                "p.created_at AS produk_created_at, p.foto_produk, p.konten_deskripsi, p.catatan_penjual, " +
+                "p.foto_produk_list, " +
+                "k.nama_kategori, " +
+                "u.id AS seller_id, u.username AS seller_username, u.email AS seller_email, u.role AS seller_role, " +
+                "t.id_toko, t.nama_toko, t.email_bisnis, t.alamat_toko, t.created_at AS toko_created_at " +
                 "FROM \"Detail_Transaksi\" d " +
                 "JOIN \"Produk\" p ON d.id_produk = p.id_produk " +
+                "LEFT JOIN \"Kategori_Produk\" k ON p.id_kategori = k.id_kategori " +
+                "LEFT JOIN \"User\" u ON p.id_user_seller = u.id " +
+                "LEFT JOIN \"Toko\" t ON t.id_user = u.id " +
                 "WHERE d.id_transaksi = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -89,6 +139,13 @@ public class TransaksiDAO {
                     produk.setKonten_deskripsi(rs.getString("konten_deskripsi"));
                     produk.setCatatan_penjual(rs.getString("catatan_penjual"));
 
+                    Array fotoArray = rs.getArray("foto_produk_list");
+                    if (fotoArray != null) {
+                        String[] fotoList = (String[]) fotoArray.getArray();
+                        produk.setFoto_produk_list(java.util.Arrays.asList(fotoList));
+                    }
+
+                    mapProdukRelations(rs, produk);
                     detail.setProduk(produk);
                     list.add(detail);
                 }
@@ -529,13 +586,18 @@ public class TransaksiDAO {
                 "(id_log, id_transaksi, status, waktu) " +
                 "VALUES (?, ?, ?, NOW())";
 
+        String updateTransaksiSql = "UPDATE \"Transaksi\" SET status_transaksi = ? WHERE id_transaksi = ?";
+
         try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+
             try (PreparedStatement psCek = conn.prepareStatement(cekSql)) {
                 psCek.setString(1, idTransaksi);
                 psCek.setInt(2, idSeller);
 
                 try (ResultSet rs = psCek.executeQuery()) {
                     if (!rs.next() || rs.getInt(1) == 0) {
+                        conn.rollback();
                         return false;
                     }
                 }
@@ -545,8 +607,17 @@ public class TransaksiDAO {
                 psTrack.setString(1, UUID.randomUUID().toString());
                 psTrack.setString(2, idTransaksi);
                 psTrack.setString(3, "DIKIRIM_SELLER_" + idSeller);
-                return psTrack.executeUpdate() > 0;
+                psTrack.executeUpdate();
             }
+
+            try (PreparedStatement psUpdate = conn.prepareStatement(updateTransaksiSql)) {
+                psUpdate.setString(1, "DIKIRIM");
+                psUpdate.setString(2, idTransaksi);
+                psUpdate.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
 
         } catch (SQLException e) {
             System.err.println("[ERROR] konfirmasiKirim gagal: " + e.getMessage());

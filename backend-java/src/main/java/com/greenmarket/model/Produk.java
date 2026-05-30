@@ -17,6 +17,8 @@ public class Produk {
     private String konten_deskripsi;
     private String catatan_penjual;
     private List<String> foto_produk_list;
+    private KategoriProduk kategori;
+    private User seller;
 
     public Produk() {
     }
@@ -34,8 +36,7 @@ public class Produk {
             String foto_produk,
             String konten_deskripsi,
             String catatan_penjual,
-            List<String> foto_produk_list
-    ) {
+            List<String> foto_produk_list) {
         this.id_produk = id_produk;
         this.id_user_seller = id_user_seller;
         this.id_kategori = id_kategori;
@@ -153,5 +154,21 @@ public class Produk {
 
     public void setFoto_produk_list(List<String> foto_produk_list) {
         this.foto_produk_list = foto_produk_list;
+    }
+
+    public KategoriProduk getKategori() {
+        return kategori;
+    }
+
+    public void setKategori(KategoriProduk kategori) {
+        this.kategori = kategori;
+    }
+
+    public User getSeller() {
+        return seller;
+    }
+
+    public void setSeller(User seller) {
+        this.seller = seller;
     }
 }

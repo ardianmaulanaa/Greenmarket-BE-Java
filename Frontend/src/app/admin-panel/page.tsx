@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 interface AdminUser {
   id: number | string;
@@ -52,11 +53,12 @@ export default function AdminPanel() {
 
     const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5050/admin/users?role=${role}`,
-        );
+        const response = await fetch(`${API_BASE_URL}/users?role=${role}`);
         const data = await response.json();
-        if (response.ok) setUsers(data);
+
+        if (response.ok) {
+          setUsers(data?.data || []);
+        }
       } catch (error) {
         console.error("Gagal koneksi ke API", error);
       } finally {
@@ -295,12 +297,13 @@ export default function AdminPanel() {
                         </div>
                         <div className="text-right">
                           <span
-                            className={`text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider border ${u.role === "ADMIN"
+                            className={`text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider border ${
+                              u.role === "ADMIN"
                                 ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
                                 : u.role === "SELLER"
                                   ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                                   : "bg-[#2fa84f]/10 text-[#2fa84f] border-[#2fa84f]/20"
-                              }`}
+                            }`}
                           >
                             {u.role}
                           </span>

@@ -43,7 +43,13 @@ public class ProdukController extends BaseApiController {
         }
 
         if (kategori != null && !kategori.trim().isEmpty()) {
-            List<Produk> produkList = produkService.getProdukByKategori(kategori);
+            List<Produk> produkList;
+
+            if (kategori.contains(",")) {
+                produkList = produkService.getProdukByKategoriList(kategori);
+            } else {
+                produkList = produkService.getProdukByKategori(kategori);
+            }
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write(gson.toJson(produkList));

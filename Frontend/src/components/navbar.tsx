@@ -215,7 +215,7 @@ export default function Navbar({
       ? "/dashboard-seller"
       : "/dashboard-buyer";
 
-  const roleLabel = isSeller ? "SELLER HUB" : "BUYER";
+  const roleLabel = isGuest ? "GUEST" : isSeller ? "SELLER HUB" : "BUYER";
 
   const CartButton = () => (
     <Link

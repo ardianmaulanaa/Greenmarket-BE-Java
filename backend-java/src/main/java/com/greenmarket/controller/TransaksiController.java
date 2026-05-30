@@ -119,13 +119,7 @@ public class TransaksiController extends BaseApiController {
 
         Transaksi transaksi = readRequestBody(request, Transaksi.class);
 
-        boolean success;
-
-        if (transaksi.getItems() != null && !transaksi.getItems().isEmpty()) {
-            success = transaksiService.createTransaksiMultiProduk(transaksi);
-        } else {
-            success = transaksiService.createTransaksi(transaksi);
-        }
+        boolean success = transaksiService.createTransaksiMultiProduk(transaksi);
 
         if (success) {
             Map<String, Object> data = new HashMap<>();
@@ -147,7 +141,7 @@ public class TransaksiController extends BaseApiController {
         String path = request.getPathInfo();
 
         if (path != null && path.endsWith("/konfirmasi-kirim")) {
-            String idTransaksi = path.replace("/konfirmasi-kirim", "").replace("/", "");
+            String idTransaksi = path.substring(1, path.length() - "/konfirmasi-kirim".length());
             KonfirmasiKirimRequest body = readRequestBody(request, KonfirmasiKirimRequest.class);
 
             boolean success = transaksiService.konfirmasiKirim(idTransaksi, body.id_seller);

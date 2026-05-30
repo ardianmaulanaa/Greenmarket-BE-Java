@@ -71,20 +71,17 @@ export default function RegisterPenjual() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/users/upgrade/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nama_toko: namaToko,
-            email_bisnis: emailBisnis,
-            alamat_toko: alamatToko,
-          }),
+      const response = await fetch(`${API_BASE_URL}/users/upgrade/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          nama_toko: namaToko,
+          email_bisnis: emailBisnis,
+          alamat_toko: alamatToko,
+        }),
+      });
 
       const data = await response.json().catch(() => null);
 
@@ -95,8 +92,12 @@ export default function RegisterPenjual() {
 
       const currentData = JSON.parse(localStorage.getItem("user") || "{}");
 
-      const updatedUser = data?.user
-        ? data.data
+      const updatedUser = data?.data
+        ? {
+            ...currentData,
+            ...data.data,
+            role: "SELLER",
+          }
         : {
             ...currentData,
             role: "SELLER",

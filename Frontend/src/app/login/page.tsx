@@ -336,23 +336,41 @@ export default function LoginPage() {
         localStorage.setItem("rememberedEmail", rememberedEmail);
       }
 
-      const guestUser = {
-        id: "guest",
-        username: "Guest",
-        email: "guest@greenmarket.local",
-        role: "GUEST",
-      };
+      const response = await fetch(`${AUTH_API_URL}/guest`, {
+        method: "POST",
+      });
 
-      localStorage.setItem("user", JSON.stringify(guestUser));
-      localStorage.setItem("userId", String(guestUser.id));
-      localStorage.setItem("userRole", guestUser.role);
+      let data: LoginResponse = {};
 
-      showNotification("success", "Masuk sebagai guest berhasil");
+      try {
+        data = (await response.json()) as LoginResponse;
+      } catch {
+        data = {};
+      }
 
-      setTimeout(() => router.push("/dashboard-buyer"), 1000);
+      const guestUser = data?.data?.user;
+
+      if (response.ok && guestUser) {
+        const user = {
+          ...guestUser,
+          role: "GUEST",
+          isGuest: true,
+        };
+
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("userId", String(user.id));
+        localStorage.setItem("userRole", "GUEST");
+        localStorage.setItem("isGuest", "true");
+
+        showNotification("success", "Masuk sebagai guest berhasil");
+
+        setTimeout(() => router.push("/dashboard-buyer"), 1000);
+      } else {
+        showNotification("error", data.message || "Gagal masuk sebagai guest");
+      }
     } catch (error) {
       console.error("Guest Login Error:", error);
-      showNotification("error", "Gagal masuk sebagai guest");
+      showNotification("error", "Gagal terhubung ke server Java");
     } finally {
       setIsSubmitting(false);
     }

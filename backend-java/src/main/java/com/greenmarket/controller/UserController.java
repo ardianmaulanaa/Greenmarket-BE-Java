@@ -1,7 +1,9 @@
 package com.greenmarket.controller;
 
 import com.greenmarket.model.User;
+import com.greenmarket.model.Toko;
 import com.greenmarket.service.UserService;
+import com.greenmarket.service.TokoService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +16,7 @@ import java.io.IOException;
 public class UserController extends BaseApiController {
 
     private final UserService userService = new UserService();
+    private final TokoService tokoService = new TokoService();
 
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -30,7 +33,17 @@ public class UserController extends BaseApiController {
         String path = request.getPathInfo();
 
         if (path == null || path.equals("/")) {
-            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID user wajib dikirim", null);
+            String role = request.getParameter("role");
+
+            java.util.List<User> users = userService.getAllUsers();
+
+            if (role != null && !role.trim().isEmpty()) {
+                String selectedRole = role.trim().toUpperCase();
+
+                users.removeIf(user -> user.getRole() == null || !user.getRole().equalsIgnoreCase(selectedRole));
+            }
+
+            sendResponse(response, HttpServletResponse.SC_OK, true, "User berhasil diambil", users);
             return;
         }
 
@@ -67,9 +80,16 @@ public class UserController extends BaseApiController {
         try {
             if (path.startsWith("/upgrade/")) {
                 int id = Integer.parseInt(path.substring("/upgrade/".length()));
+                Toko toko = readRequestBody(request, Toko.class);
+
                 boolean success = userService.upgradeUserRole(id);
 
                 if (success) {
+                    if (toko != null && toko.getNama_toko() != null && !toko.getNama_toko().trim().isEmpty()) {
+                        toko.setId_user(id);
+                        tokoService.upsertToko(toko);
+                    }
+
                     User updatedUser = userService.getUserById(id);
                     sendResponse(response, HttpServletResponse.SC_OK, true, "User berhasil menjadi seller",
                             updatedUser);

@@ -37,6 +37,14 @@ public class ProdukService {
         return produkDAO.getProdukByKategori(idKategori);
     }
 
+    public List<Produk> getProdukByKategoriList(String kategoriParam) {
+        if (kategoriParam == null || kategoriParam.trim().isEmpty()) {
+            return getAllProduk();
+        }
+
+        return produkDAO.getProdukByKategoriList(kategoriParam);
+    }
+
     public List<Produk> searchProduk(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return getAllProduk();
@@ -46,9 +54,11 @@ public class ProdukService {
     }
 
     public boolean insertProduk(Produk produk) {
-        if (produk == null) return false;
+        if (produk == null)
+            return false;
 
-        if (produk.getId_user_seller() <= 0) return false;
+        if (produk.getId_user_seller() <= 0)
+            return false;
 
         if (produk.getNama_produk() == null || produk.getNama_produk().trim().isEmpty()) {
             return false;
@@ -62,7 +72,8 @@ public class ProdukService {
     }
 
     public boolean updateProduk(Produk produk) {
-        if (produk == null) return false;
+        if (produk == null)
+            return false;
 
         if (produk.getId_produk() == null || produk.getId_produk().trim().isEmpty()) {
             return false;

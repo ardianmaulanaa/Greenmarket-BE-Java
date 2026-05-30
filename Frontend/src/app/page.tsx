@@ -16,6 +16,7 @@ import FloatingBlobs from "@/components/landing/FloatingBlobs";
 import InfoCard from "@/components/landing/InfoCard";
 import ParticlesOverlay from "@/components/landing/ParticlesOverlay";
 import Nav from "@/components/navbar";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useToast } from "@/hooks/useToast";
 
@@ -198,25 +199,38 @@ export default function LandingPage() {
         localStorage.setItem("rememberedEmail", rememberedEmail);
       }
 
-      const response = await fetch("http://localhost:5050/guest", {
+      const response = await fetch(`${API_BASE_URL}/auth/guest`, {
         method: "POST",
       });
 
       const data = await response.json();
 
-      if (!response.ok || !data.user) {
+      const guestUser = data?.data?.user;
+
+      if (!response.ok || !guestUser) {
         showToast(data.message || "Gagal masuk sebagai guest.", "error");
         return;
       }
 
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("userId", String(data.user.id));
-      localStorage.setItem("userRole", data.user.role);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...guestUser,
+          role: "GUEST",
+          isGuest: true,
+        }),
+      );
+      localStorage.setItem("userId", String(guestUser.id));
+      localStorage.setItem("userRole", "GUEST");
+      localStorage.setItem("isGuest", "true");
 
       router.push("/dashboard-buyer");
     } catch (error) {
       console.error("Guest access error:", error);
-      showToast("Gagal terhubung ke server. Periksa koneksi internet Anda.", "error");
+      showToast(
+        "Gagal terhubung ke server. Periksa koneksi internet Anda.",
+        "error",
+      );
     } finally {
       setIsGuestLoading(false);
     }

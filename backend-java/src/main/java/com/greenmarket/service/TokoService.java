@@ -16,7 +16,8 @@ public class TokoService {
     }
 
     public boolean insertToko(Toko toko) {
-        if (toko == null) return false;
+        if (toko == null)
+            return false;
 
         if (toko.getId_user() <= 0) {
             return false;
@@ -30,12 +31,36 @@ public class TokoService {
     }
 
     public boolean updateToko(Toko toko) {
-        if (toko == null) return false;
+        if (toko == null)
+            return false;
 
         if (toko.getId_toko() == null || toko.getId_toko().trim().isEmpty()) {
             return false;
         }
 
+        return tokoDAO.updateToko(toko);
+    }
+
+    public boolean upsertToko(Toko toko) {
+        if (toko == null) {
+            return false;
+        }
+
+        if (toko.getId_user() <= 0) {
+            return false;
+        }
+
+        if (toko.getNama_toko() == null || toko.getNama_toko().trim().isEmpty()) {
+            return false;
+        }
+
+        Toko existingToko = tokoDAO.getTokoByUser(toko.getId_user());
+
+        if (existingToko == null) {
+            return tokoDAO.insertToko(toko);
+        }
+
+        toko.setId_toko(existingToko.getId_toko());
         return tokoDAO.updateToko(toko);
     }
 }

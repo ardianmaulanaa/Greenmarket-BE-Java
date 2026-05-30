@@ -9,6 +9,7 @@ public class User {
     private String password;
     private Timestamp createdAt;
     private String role;
+    private Toko toko;
 
     public User() {
     }
@@ -28,7 +29,7 @@ public class User {
 
     public void setId(int id) {
         this.id = id;
-    }   
+    }
 
     public String getUsername() {
         return username;
@@ -44,7 +45,7 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }   
+    }
 
     public String getPassword() {
         return password;
@@ -52,7 +53,7 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }   
+    }
 
     public Timestamp getCreatedAt() {
         return createdAt;
@@ -60,7 +61,7 @@ public class User {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
-    }   
+    }
 
     public String getRole() {
         return role;
@@ -68,5 +69,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Toko getToko() {
+        return toko;
+    }
+
+    public void setToko(Toko toko) {
+        this.toko = toko;
     }
 }

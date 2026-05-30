@@ -44,7 +44,8 @@ public class AuthController extends HttpServlet {
             data.put("availableEndpoints", new String[] {
                     "GET /api/auth/check",
                     "POST /api/auth/login",
-                    "POST /api/auth/register"
+                    "POST /api/auth/register",
+                    "POST /api/auth/guest"
             });
 
             sendResponse(response, HttpServletResponse.SC_OK, true, "Auth controller aktif", data);
@@ -89,6 +90,10 @@ public class AuthController extends HttpServlet {
 
             case "/register":
                 handleRegister(request, response);
+                break;
+
+            case "/guest":
+                handleGuest(response);
                 break;
 
             default:
@@ -172,6 +177,42 @@ public class AuthController extends HttpServlet {
         } else {
             sendResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false, "Register gagal", null);
         }
+    }
+
+    private void handleGuest(HttpServletResponse response) throws IOException {
+        User guest = userDAO.getUserByEmail("guest@greenmarket.local");
+
+        if (guest == null) {
+            guest = new User();
+            guest.setUsername("Guest User");
+            guest.setEmail("guest@greenmarket.local");
+
+            String hashedPassword = BCrypt.hashpw("guest-no-login", BCrypt.gensalt());
+            guest.setPassword(hashedPassword);
+
+            guest.setRole("GUEST");
+
+            boolean created = userDAO.registerUser(guest);
+
+            if (!created) {
+                sendResponse(
+                        response,
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        false,
+                        "Gagal membuat akun guest",
+                        null);
+                return;
+            }
+
+            guest = userDAO.getUserByEmail("guest@greenmarket.local");
+        }
+
+        guest.setPassword(null);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user", guest);
+
+        sendResponse(response, HttpServletResponse.SC_OK, true, "Masuk sebagai guest berhasil", data);
     }
 
     private AuthRequest readRequestBody(HttpServletRequest request) throws IOException {

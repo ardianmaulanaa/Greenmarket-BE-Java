@@ -112,13 +112,15 @@ export default function KeranjangPage() {
         if (!isMounted) return;
 
         if (profileOk && profileData) {
+          const profile = profileData?.data || profileData;
+
           setUser({
-            nama: profileData.username || "User",
-            role: profileData.role || "BUYER",
+            nama: profile?.username || "User",
+            role: profile?.role || "BUYER",
           });
 
-          localStorage.setItem("user", JSON.stringify(profileData));
-          localStorage.setItem("userRole", profileData.role);
+          localStorage.setItem("user", JSON.stringify(profile));
+          localStorage.setItem("userRole", profile?.role || "BUYER");
         }
 
         if (keranjangOk && keranjangData) {

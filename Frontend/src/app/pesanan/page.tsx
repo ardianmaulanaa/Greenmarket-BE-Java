@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
@@ -192,6 +192,7 @@ function PesananContent() {
   const [user, setUser] = useState({ nama: "", role: "" });
   const [buyerTransactions, setBuyerTransactions] = useState<Transaksi[]>([]);
   const [sellerTransactions, setSellerTransactions] = useState<Transaksi[]>([]);
+  const autoFinishIdsRef = useRef<string[]>([]);
   const [buyerLoaded, setBuyerLoaded] = useState(false);
   const [sellerLoaded, setSellerLoaded] = useState(false);
   const [isOrderLoading, setIsOrderLoading] = useState(false);
@@ -327,6 +328,57 @@ function PesananContent() {
       showToast("Terjadi kesalahan. Periksa koneksi internet Anda.", "error");
     }
   };
+
+  const handleAutoSelesai = async (idTransaksi: string) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/transactions/${idTransaksi}/selesai`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data.message || "Gagal mengubah status menjadi selesai");
+        return;
+      }
+
+      await fetchTransactions(orderMode, true);
+    } catch (error) {
+      console.error("Auto selesai error:", error);
+    }
+  };
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    activeTransactions.forEach((trx) => {
+      const status = trx.status_transaksi?.toUpperCase();
+
+      const alreadyScheduled = autoFinishIdsRef.current.includes(
+        trx.id_transaksi,
+      );
+
+      if (status === "DIKIRIM" && !alreadyScheduled) {
+        autoFinishIdsRef.current.push(trx.id_transaksi);
+
+        const timer = setTimeout(() => {
+          void handleAutoSelesai(trx.id_transaksi);
+        }, 60000);
+
+        timers.push(timer);
+      }
+    });
+
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+    };
+  }, [activeTransactions, orderMode]);
 
   const getSellerShippingStatus = (
     sellerId: number,

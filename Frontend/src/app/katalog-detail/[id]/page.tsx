@@ -764,14 +764,13 @@ export default function DetailProdukPage() {
                   Bergabung
                 </span>
                 <span className="font-black text-white text-sm">
-                  {product.seller?.createdAt
-                    ? new Date(product.seller.createdAt).toLocaleDateString(
-                        "id-ID",
-                        {
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )
+                  {product.seller?.toko?.created_at
+                    ? new Date(
+                        product.seller.toko.created_at,
+                      ).toLocaleDateString("id-ID", {
+                        month: "short",
+                        year: "numeric",
+                      })
                     : "Baru"}
                 </span>
               </div>
