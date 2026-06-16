@@ -404,11 +404,13 @@ Base URL: `http://localhost:8080/backend-java/api`
 
 ## Kontributor
 
-| Nama | NIM | Role |
-|------|-----|------|
-| [Nama Anggota 1] | [NIM] | [Backend/Frontend/Fullstack] |
-| [Nama Anggota 2] | [NIM] | [Backend/Frontend/Fullstack] |
-| [Nama Anggota 3] | [NIM] | [Backend/Frontend/Fullstack] |
+| Nama | NIM |
+|------|-----|
+| [Nama Anggota 1] | [NIM] | 
+| [Nama Anggota 2] | [NIM] | 
+| [Nama Anggota 3] | [NIM] | 
+| [Nama Anggota 4] | [NIM] |
+| [Keanu Fibie Dimasyqi] | [103012430045] |
 
 ---
 
