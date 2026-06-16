@@ -359,9 +359,24 @@ public class TransaksiDAO implements ITransaksiDAO {
             int totalHarga = totalProduk + ongkir;
             transaksi.setTotal_harga(totalHarga);
 
+            String kodeMetode = "";
+            String metodeSql = "SELECT kode_metode FROM \"Metode_Pembayaran\" WHERE id_metode = ?";
+
+            try (PreparedStatement psMetode = conn.prepareStatement(metodeSql)) {
+                psMetode.setString(1, transaksi.getId_metode_pembayaran());
+
+                try (ResultSet rsMetode = psMetode.executeQuery()) {
+                    if (rsMetode.next()) {
+                        kodeMetode = rsMetode.getString("kode_metode");
+                    }
+                }
+            }
+
+            boolean isQris = "QRIS".equalsIgnoreCase(kodeMetode);
+
             String statusTransaksi = transaksi.getStatus_transaksi();
             if (statusTransaksi == null || statusTransaksi.trim().isEmpty()) {
-                statusTransaksi = "DIKEMAS";
+                statusTransaksi = isQris ? "MENUNGGU_PEMBAYARAN" : "DIKEMAS";
                 transaksi.setStatus_transaksi(statusTransaksi);
             }
 
@@ -432,10 +447,12 @@ public class TransaksiDAO implements ITransaksiDAO {
                     "(id_pembayaran, id_transaksi, status_pembayaran, tanggal_pembayaran) " +
                     "VALUES (?, ?, ?, NOW())";
 
+            String statusPembayaran = isQris ? "MENUNGGU_PEMBAYARAN" : "BAYAR_DI_TEMPAT";
+
             try (PreparedStatement psBayar = conn.prepareStatement(insertPembayaranSql)) {
                 psBayar.setString(1, UUID.randomUUID().toString());
                 psBayar.setString(2, idTransaksi);
-                psBayar.setString(3, "BAYAR_DI_TEMPAT");
+                psBayar.setString(3, statusPembayaran);
                 psBayar.executeUpdate();
             }
 
@@ -443,10 +460,12 @@ public class TransaksiDAO implements ITransaksiDAO {
                     "(id_log, id_transaksi, status, waktu) " +
                     "VALUES (?, ?, ?, NOW())";
 
+            String statusTracking = isQris ? "Menunggu pembayaran QRIS" : "Pesanan sedang dikemas";
+
             try (PreparedStatement psTrack = conn.prepareStatement(insertTrackingSql)) {
                 psTrack.setString(1, UUID.randomUUID().toString());
                 psTrack.setString(2, idTransaksi);
-                psTrack.setString(3, "Pesanan sedang dikemas");
+                psTrack.setString(3, statusTracking);
                 psTrack.executeUpdate();
             }
 

@@ -5,6 +5,9 @@ import com.greenmarket.model.CheckoutRequest;
 import com.greenmarket.model.CheckoutItem;
 import com.greenmarket.model.Detail_Transaksi;
 import com.greenmarket.service.TransaksiService;
+import com.greenmarket.model.Metode_Pembayaran;
+import com.greenmarket.service.MetodePembayaranService;
+import com.greenmarket.service.MidTransService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -20,6 +23,8 @@ import java.util.Map;
 public class TransaksiController extends BaseApiController {
 
     private final TransaksiService transaksiService = new TransaksiService();
+    private final MetodePembayaranService metodePembayaranService = new MetodePembayaranService();
+    private final MidTransService midtransService = new MidTransService();
 
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -128,6 +133,7 @@ public class TransaksiController extends BaseApiController {
         transaksi.setId_jasa_kirim(req.getId_jasa_kirim());
         transaksi.setId_metode_pembayaran(req.getId_metode_pembayaran());
         transaksi.setStatus_transaksi(req.getStatus_transaksi());
+        transaksi.setTotal_harga(req.getTotal_harga());
 
         java.util.ArrayList<Detail_Transaksi> details = new java.util.ArrayList<>();
         if (req.getItems() != null) {
@@ -140,12 +146,49 @@ public class TransaksiController extends BaseApiController {
         }
         transaksi.setDetail_transaksi(details);
 
+        String midtransToken = null;
+
+        Metode_Pembayaran metode = metodePembayaranService.getMetodeById(transaksi.getId_metode_pembayaran());
+        boolean isQris = metode != null && "QRIS".equalsIgnoreCase(metode.getKode_metode());
+
+        if (isQris) {
+            transaksi.setId_transaksi(java.util.UUID.randomUUID().toString());
+            transaksi.setStatus_transaksi("MENUNGGU_PEMBAYARAN");
+
+            if (transaksi.getTotal_harga() <= 0) {
+                sendResponse(
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        false,
+                        "Total harga tidak valid untuk pembayaran QRIS",
+                        null);
+                return;
+            }
+
+            try {
+                midtransToken = midtransService.createSnapToken(transaksi);
+            } catch (Exception e) {
+                System.err.println("[ERROR] create token Midtrans gagal: " + e.getMessage());
+                e.printStackTrace();
+
+                sendResponse(
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        false,
+                        "Token Midtrans gagal dibuat: " + e.getMessage(),
+                        null);
+                return;
+            }
+        } else {
+            transaksi.setStatus_transaksi("DIKEMAS");
+        }
+
         boolean success = transaksiService.createTransaksiMultiProduk(transaksi);
 
         if (success) {
             Map<String, Object> data = new HashMap<>();
             data.put("transaksi", transaksi);
-            data.put("midtransToken", null);
+            data.put("midtransToken", midtransToken);
 
             sendResponse(response, HttpServletResponse.SC_CREATED, true, "Transaksi berhasil dibuat", data);
         } else {

@@ -309,12 +309,16 @@ function PembayaranContent() {
           }
         : {
             id_user: Number(userId),
-            id_produk: product!.id_produk,
             id_alamat: selectedAddress,
             id_jasa_kirim: selectedShipping,
             id_metode_pembayaran: selectedPayment,
-            kuantitas: quantity,
             total_harga: total,
+            items: [
+              {
+                id_produk: product!.id_produk,
+                kuantitas: quantity,
+              },
+            ],
           };
 
       const response = await fetch(`${API_BASE_URL}/transactions`, {
@@ -379,14 +383,15 @@ function PembayaranContent() {
         localStorage.removeItem("checkoutItems");
       }
 
-      // Kalau backend mengirim token Midtrans, buka popup pembayaran
-      if (data.midtransToken) {
+      const midtransToken = data.data?.midtransToken;
+
+      if (midtransToken) {
         if (!window.snap) {
           setErrorMessage("Midtrans belum siap. Coba klik bayar lagi.");
           return;
         }
 
-        window.snap.pay(data.midtransToken, {
+        window.snap.pay(midtransToken, {
           onSuccess: function () {
             setShowSuccessModal(true);
           },
@@ -457,7 +462,7 @@ function PembayaranContent() {
     <>
       <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
-        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        data-client-key="ISI KEY MIDTRANS CLIENT YANG KU KASIH"
         strategy="afterInteractive"
       />
       <div className="min-h-screen bg-[#edf3e7] relative overflow-hidden font-sans">
@@ -681,7 +686,9 @@ function PembayaranContent() {
 
                       <div>
                         <p className="text-[13px] text-gray-500 font-semibold mb-1">
-                          {product!.seller?.toko?.nama_toko || product!.seller?.username || "GreenMarket Store"}
+                          {product!.seller?.toko?.nama_toko ||
+                            product!.seller?.username ||
+                            "GreenMarket Store"}
                         </p>
 
                         <h2 className="text-[30px] font-black text-[#1f1f1f] leading-tight mb-2">

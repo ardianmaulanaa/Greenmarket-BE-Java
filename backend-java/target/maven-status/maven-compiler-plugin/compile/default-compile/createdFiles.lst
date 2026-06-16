@@ -1,6 +1,7 @@
 com\greenmarket\dao\TokoDAO.class
 com\greenmarket\model\Produk.class
 com\greenmarket\model\Pembayaran.class
+com\greenmarket\service\MidTransService.class
 com\greenmarket\controller\TokoController.class
 com\greenmarket\controller\PembayaranController.class
 com\greenmarket\dao\AlamatDAO.class

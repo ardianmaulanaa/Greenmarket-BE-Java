@@ -14,7 +14,9 @@ public class KeranjangService {
     }
 
     public boolean addToKeranjang(Keranjang keranjang) {
-        if (keranjang == null) return false;
+        if (keranjang == null) {
+            return false;
+        }
 
         if (keranjang.getId_user() <= 0) {
             return false;
@@ -26,26 +28,13 @@ public class KeranjangService {
 
         Keranjang existing = keranjangDAO.getKeranjangByUserAndProduk(
                 keranjang.getId_user(),
-                keranjang.getId_produk()
-        );
+                keranjang.getId_produk());
 
         if (existing != null) {
-            int newQty = existing.getKuantitas() + (keranjang.getKuantitas() <= 0 ? 1 : keranjang.getKuantitas());
-            return keranjangDAO.updateKuantitas(keranjang.getId_user(), keranjang.getId_produk(), newQty);
-        }
-
-        if (keranjang.getKuantitas() <= 0) {
-            keranjang.setKuantitas(1);
+            return false;
         }
 
         return keranjangDAO.addToKeranjang(keranjang);
-    }
-
-    public boolean updateKuantitas(long idUser, String idProduk, int kuantitas) {
-        if (idUser <= 0 || idProduk == null || idProduk.trim().isEmpty() || kuantitas <= 0) {
-            return false;
-        }
-        return keranjangDAO.updateKuantitas(idUser, idProduk, kuantitas);
     }
 
     public boolean isProdukInKeranjang(long idUser, String idProduk) {

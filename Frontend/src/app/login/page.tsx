@@ -12,7 +12,6 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-import { useToast } from "@/hooks/useToast";
 import { API_BASE_URL } from "@/lib/api";
 
 const AUTH_API_URL = `${API_BASE_URL}/auth`;
@@ -233,8 +232,6 @@ function LoadingScreen() {
 }
 
 export default function LoginPage() {
-  const { showToast } = useToast();
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -250,10 +247,9 @@ export default function LoginPage() {
 
   const showNotification = useCallback(
     (type: "success" | "error", message: string) => {
-      showToast(message, type);
       setNotification({ type, message });
     },
-    [showToast],
+    [],
   );
 
   useEffect(() => {

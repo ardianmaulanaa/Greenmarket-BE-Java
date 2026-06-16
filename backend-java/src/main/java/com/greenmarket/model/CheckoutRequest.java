@@ -8,6 +8,7 @@ public class CheckoutRequest {
     private String id_jasa_kirim;
     private String id_metode_pembayaran;
     private String status_transaksi;
+    private int total_harga;
     private List<CheckoutItem> items;
 
     public CheckoutRequest() {
@@ -51,6 +52,14 @@ public class CheckoutRequest {
 
     public void setStatus_transaksi(String status_transaksi) {
         this.status_transaksi = status_transaksi;
+    }
+
+    public int getTotal_harga() {
+        return total_harga;
+    }
+
+    public void setTotal_harga(int total_harga) {
+        this.total_harga = total_harga;
     }
 
     public List<CheckoutItem> getItems() {
