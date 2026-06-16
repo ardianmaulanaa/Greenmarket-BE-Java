@@ -406,10 +406,10 @@ Base URL: `http://localhost:8080/backend-java/api`
 
 | Nama | NIM |
 |------|-----|
-| [Nama Anggota 1] | [NIM] | 
-| [Nama Anggota 2] | [NIM] | 
-| [Nama Anggota 3] | [NIM] | 
-| [Nama Anggota 4] | [NIM] |
+| [Nama Anggota 1] | [103012400] | 
+| [Nama Anggota 2] | [103012400] | 
+| [Nama Anggota 3] | [103012400] | 
+| [Muhammad Ghizar Al Hasan] | [103012400235] |
 | [Keanu Fibie Dimasyqi] | [103012430045] |
 
 ---
