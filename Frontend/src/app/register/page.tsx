@@ -323,6 +323,8 @@ export default function RegisterPage() {
 
     if (!form.password) {
       errors.password = "Password wajib diisi";
+    }else if (form.password.length < 8) {
+      errors.password = "Password minimal 8 karakter";
     }
 
     if (!form.confirmPassword) {
