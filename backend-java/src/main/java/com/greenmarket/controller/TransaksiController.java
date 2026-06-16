@@ -1,6 +1,9 @@
 package com.greenmarket.controller;
 
 import com.greenmarket.model.Transaksi;
+import com.greenmarket.model.CheckoutRequest;
+import com.greenmarket.model.CheckoutItem;
+import com.greenmarket.model.Detail_Transaksi;
 import com.greenmarket.service.TransaksiService;
 
 import jakarta.servlet.ServletException;
@@ -117,7 +120,25 @@ public class TransaksiController extends BaseApiController {
 
         prepareJsonResponse(response);
 
-        Transaksi transaksi = readRequestBody(request, Transaksi.class);
+        CheckoutRequest req = readRequestBody(request, CheckoutRequest.class);
+
+        Transaksi transaksi = new Transaksi();
+        transaksi.setId_user(req.getId_user());
+        transaksi.setId_alamat(req.getId_alamat());
+        transaksi.setId_jasa_kirim(req.getId_jasa_kirim());
+        transaksi.setId_metode_pembayaran(req.getId_metode_pembayaran());
+        transaksi.setStatus_transaksi(req.getStatus_transaksi());
+
+        java.util.ArrayList<Detail_Transaksi> details = new java.util.ArrayList<>();
+        if (req.getItems() != null) {
+            for (CheckoutItem item : req.getItems()) {
+                Detail_Transaksi detail = new Detail_Transaksi();
+                detail.setId_produk(item.getId_produk());
+                detail.setKuantitas(item.getKuantitas());
+                details.add(detail);
+            }
+        }
+        transaksi.setDetail_transaksi(details);
 
         boolean success = transaksiService.createTransaksiMultiProduk(transaksi);
 

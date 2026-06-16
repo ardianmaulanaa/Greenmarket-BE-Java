@@ -6,16 +6,18 @@ public class Keranjang {
     private String id_keranjang;
     private long id_user;
     private String id_produk;
+    private int kuantitas;
     private Timestamp created_at;
     private Produk produk;
 
     public Keranjang() {
     }
 
-    public Keranjang(String id_keranjang, long id_user, String id_produk, Timestamp created_at) {
+    public Keranjang(String id_keranjang, long id_user, String id_produk, int kuantitas, Timestamp created_at) {
         this.id_keranjang = id_keranjang;
         this.id_user = id_user;
         this.id_produk = id_produk;
+        this.kuantitas = kuantitas;
         this.created_at = created_at;
     }
 
@@ -41,6 +43,14 @@ public class Keranjang {
 
     public void setId_produk(String id_produk) {
         this.id_produk = id_produk;
+    }
+
+    public int getKuantitas() {
+        return kuantitas;
+    }
+
+    public void setKuantitas(int kuantitas) {
+        this.kuantitas = kuantitas;
     }
 
     public Timestamp getCreated_at() {

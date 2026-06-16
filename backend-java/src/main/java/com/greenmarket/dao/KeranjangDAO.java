@@ -17,6 +17,7 @@ public class KeranjangDAO {
         keranjang.setId_keranjang(rs.getString("id_keranjang"));
         keranjang.setId_user(rs.getLong("id_user"));
         keranjang.setId_produk(rs.getString("id_produk"));
+        keranjang.setKuantitas(rs.getInt("kuantitas"));
         keranjang.setCreated_at(rs.getTimestamp("created_at"));
 
         return keranjang;
@@ -70,7 +71,7 @@ public class KeranjangDAO {
     }
 
     public boolean addToKeranjang(Keranjang keranjang) {
-        String sql = "INSERT INTO \"Keranjang\" (id_keranjang, id_user, id_produk, created_at) VALUES (?, ?, ?, NOW())";
+        String sql = "INSERT INTO \"Keranjang\" (id_keranjang, id_user, id_produk, kuantitas, created_at) VALUES (?, ?, ?, ?, NOW())";
 
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -84,6 +85,7 @@ public class KeranjangDAO {
             ps.setString(1, id);
             ps.setLong(2, keranjang.getId_user());
             ps.setString(3, keranjang.getId_produk());
+            ps.setInt(4, keranjang.getKuantitas() <= 0 ? 1 : keranjang.getKuantitas());
 
             return ps.executeUpdate() > 0;
 
@@ -116,6 +118,39 @@ public class KeranjangDAO {
         }
 
         return false;
+    }
+
+    public boolean updateKuantitas(long idUser, String idProduk, int kuantitas) {
+        String sql = "UPDATE \"Keranjang\" SET kuantitas = ? WHERE id_user = ? AND id_produk = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, kuantitas);
+            ps.setLong(2, idUser);
+            ps.setString(3, idProduk);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[ERROR] updateKuantitas gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Keranjang getKeranjangByUserAndProduk(long idUser, String idProduk) {
+        String sql = "SELECT * FROM \"Keranjang\" WHERE id_user = ? AND id_produk = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, idUser);
+            ps.setString(2, idProduk);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToKeranjang(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[ERROR] getKeranjangByUserAndProduk gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public boolean deleteFromKeranjang(String idKeranjang) {

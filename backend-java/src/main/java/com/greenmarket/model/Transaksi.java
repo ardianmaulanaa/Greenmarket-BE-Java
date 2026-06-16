@@ -12,9 +12,6 @@ public class Transaksi {
     private String status_transaksi;
     private Timestamp tanggal_transaksi;
     private int total_harga;
-    private String id_produk;
-    private int kuantitas;
-    private List<CheckoutItem> items;
     private List<Detail_Transaksi> detail_transaksi;
     private Alamat alamat;
     private Jasa_Kirim jasa_kirim;
@@ -109,29 +106,7 @@ public class Transaksi {
         this.total_harga = total_harga;
     }
 
-    public String getId_produk() {
-        return id_produk;
-    }
 
-    public void setId_produk(String id_produk) {
-        this.id_produk = id_produk;
-    }
-
-    public int getKuantitas() {
-        return kuantitas;
-    }
-
-    public void setKuantitas(int kuantitas) {
-        this.kuantitas = kuantitas;
-    }
-
-    public List<CheckoutItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<CheckoutItem> items) {
-        this.items = items;
-    }
 
     public List<Detail_Transaksi> getDetail_transaksi() {
         return detail_transaksi;

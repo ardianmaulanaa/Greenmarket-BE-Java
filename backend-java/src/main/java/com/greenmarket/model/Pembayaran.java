@@ -2,7 +2,7 @@ package com.greenmarket.model;
 
 import java.sql.Timestamp;
 
-public class Pembayaran {
+public class Pembayaran implements Payment {
     private String id_pembayaran;
     private String id_transaksi;
     private String status_pembayaran;
@@ -48,5 +48,16 @@ public class Pembayaran {
 
     public void setTanggal_pembayaran(Timestamp tanggal_pembayaran) {
         this.tanggal_pembayaran = tanggal_pembayaran;
+    }
+
+    @Override
+    public boolean isConfirmed() {
+        return "SUCCESS".equalsIgnoreCase(status_pembayaran)
+                || "PAID".equalsIgnoreCase(status_pembayaran);
+    }
+
+    @Override
+    public String getPaymentType() {
+        return "GENERAL";
     }
 }

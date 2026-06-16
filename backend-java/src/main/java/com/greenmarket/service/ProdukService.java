@@ -1,13 +1,14 @@
 package com.greenmarket.service;
 
 import com.greenmarket.dao.ProdukDAO;
+import com.greenmarket.dao.IProdukDAO;
 import com.greenmarket.model.Produk;
 
 import java.util.List;
 
 public class ProdukService {
 
-    private final ProdukDAO produkDAO = new ProdukDAO();
+    private final IProdukDAO produkDAO = new ProdukDAO();
 
     public List<Produk> getAllProduk() {
         return produkDAO.getAllProduk();

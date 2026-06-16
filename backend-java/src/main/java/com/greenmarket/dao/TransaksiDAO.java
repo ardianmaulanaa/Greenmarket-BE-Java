@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class TransaksiDAO {
+public class TransaksiDAO implements ITransaksiDAO {
 
     private Transaksi mapResultSetToTransaksi(ResultSet rs) throws SQLException {
         Transaksi transaksi = new Transaksi();
@@ -295,21 +295,6 @@ public class TransaksiDAO {
         return false;
     }
 
-    private List<CheckoutItem> normalizeItems(Transaksi transaksi) {
-        List<CheckoutItem> items = new ArrayList<>();
-
-        if (transaksi.getItems() != null && !transaksi.getItems().isEmpty()) {
-            items.addAll(transaksi.getItems());
-        } else if (transaksi.getId_produk() != null && !transaksi.getId_produk().trim().isEmpty()) {
-            CheckoutItem item = new CheckoutItem();
-            item.setId_produk(transaksi.getId_produk());
-            item.setKuantitas(transaksi.getKuantitas() <= 0 ? 1 : transaksi.getKuantitas());
-            items.add(item);
-        }
-
-        return items;
-    }
-
     public boolean createTransaksiMultiProduk(Transaksi transaksi) {
         Connection conn = null;
 
@@ -317,9 +302,9 @@ public class TransaksiDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            List<CheckoutItem> items = normalizeItems(transaksi);
+            List<Detail_Transaksi> details = transaksi.getDetail_transaksi();
 
-            if (items.isEmpty()) {
+            if (details == null || details.isEmpty()) {
                 conn.rollback();
                 return false;
             }
@@ -333,11 +318,11 @@ public class TransaksiDAO {
 
             int totalProduk = 0;
 
-            for (CheckoutItem item : items) {
+            for (Detail_Transaksi detail : details) {
                 String produkSql = "SELECT harga, stok FROM \"Produk\" WHERE id_produk = ?";
 
                 try (PreparedStatement psProduk = conn.prepareStatement(produkSql)) {
-                    psProduk.setString(1, item.getId_produk());
+                    psProduk.setString(1, detail.getId_produk());
 
                     try (ResultSet rs = psProduk.executeQuery()) {
                         if (!rs.next()) {
@@ -348,12 +333,12 @@ public class TransaksiDAO {
                         int harga = rs.getInt("harga");
                         int stok = rs.getInt("stok");
 
-                        if (item.getKuantitas() <= 0 || stok < item.getKuantitas()) {
+                        if (detail.getKuantitas() <= 0 || stok < detail.getKuantitas()) {
                             conn.rollback();
                             return false;
                         }
 
-                        totalProduk += harga * item.getKuantitas();
+                        totalProduk += harga * detail.getKuantitas();
                     }
                 }
             }
@@ -403,13 +388,13 @@ public class TransaksiDAO {
             String updateStokSql = "UPDATE \"Produk\" SET stok = stok - ? WHERE id_produk = ?";
             String deleteCartSql = "DELETE FROM \"Keranjang\" WHERE id_user = ? AND id_produk = ?";
 
-            for (CheckoutItem item : items) {
+            for (Detail_Transaksi detail : details) {
                 int harga = 0;
 
                 String hargaSql = "SELECT harga FROM \"Produk\" WHERE id_produk = ?";
 
                 try (PreparedStatement psHarga = conn.prepareStatement(hargaSql)) {
-                    psHarga.setString(1, item.getId_produk());
+                    psHarga.setString(1, detail.getId_produk());
 
                     try (ResultSet rs = psHarga.executeQuery()) {
                         if (rs.next()) {
@@ -418,27 +403,27 @@ public class TransaksiDAO {
                     }
                 }
 
-                int subtotal = harga * item.getKuantitas();
+                int subtotal = harga * detail.getKuantitas();
 
                 try (PreparedStatement psDetail = conn.prepareStatement(insertDetailSql)) {
                     psDetail.setString(1, UUID.randomUUID().toString());
                     psDetail.setString(2, idTransaksi);
-                    psDetail.setString(3, item.getId_produk());
-                    psDetail.setInt(4, item.getKuantitas());
+                    psDetail.setString(3, detail.getId_produk());
+                    psDetail.setInt(4, detail.getKuantitas());
                     psDetail.setInt(5, harga);
                     psDetail.setInt(6, subtotal);
                     psDetail.executeUpdate();
                 }
 
                 try (PreparedStatement psStok = conn.prepareStatement(updateStokSql)) {
-                    psStok.setInt(1, item.getKuantitas());
-                    psStok.setString(2, item.getId_produk());
+                    psStok.setInt(1, detail.getKuantitas());
+                    psStok.setString(2, detail.getId_produk());
                     psStok.executeUpdate();
                 }
 
                 try (PreparedStatement psCart = conn.prepareStatement(deleteCartSql)) {
                     psCart.setInt(1, transaksi.getId_user());
-                    psCart.setString(2, item.getId_produk());
+                    psCart.setString(2, detail.getId_produk());
                     psCart.executeUpdate();
                 }
             }

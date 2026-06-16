@@ -78,4 +78,16 @@ public class User {
     public void setToko(Toko toko) {
         this.toko = toko;
     }
+
+    public static User fromUser(User user) {
+        if (user == null) return null;
+        String role = user.getRole();
+        if (role == null) return user;
+        switch (role.toUpperCase()) {
+            case "BUYER": return new Buyer(user);
+            case "SELLER": return new Seller(user);
+            case "ADMIN": return new Admin(user);
+            default: return user;
+        }
+    }
 }

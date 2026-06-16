@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class ProdukDAO {
+public class ProdukDAO implements IProdukDAO {
 
     private String getProdukWithRelationsSql(String whereClause) {
         return "SELECT p.*, " +

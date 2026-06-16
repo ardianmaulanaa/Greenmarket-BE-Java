@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDAO {
+public class UserDAO implements IUserDAO {
 
     // Mapping ResultSet ke object User
     private User mapResultSetToUser(ResultSet rs) throws SQLException {

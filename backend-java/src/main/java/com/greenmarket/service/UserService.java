@@ -1,6 +1,7 @@
 package com.greenmarket.service;
 
 import com.greenmarket.dao.UserDAO;
+import com.greenmarket.dao.IUserDAO;
 import com.greenmarket.model.User;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public class UserService {
 
-    private final UserDAO userDAO = new UserDAO();
+    private final IUserDAO userDAO = new UserDAO();
 
     // Login user
     public User login(String email, String password) {

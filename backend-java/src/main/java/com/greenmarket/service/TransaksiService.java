@@ -1,13 +1,14 @@
 package com.greenmarket.service;
 
 import com.greenmarket.dao.TransaksiDAO;
+import com.greenmarket.dao.ITransaksiDAO;
 import com.greenmarket.model.Transaksi;
 
 import java.util.List;
 
 public class TransaksiService {
 
-    private final TransaksiDAO transaksiDAO = new TransaksiDAO();
+    private final ITransaksiDAO transaksiDAO = new TransaksiDAO();
 
     public boolean createTransaksi(Transaksi transaksi) {
         if (transaksi == null)
