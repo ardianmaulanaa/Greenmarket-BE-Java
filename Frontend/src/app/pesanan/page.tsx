@@ -81,6 +81,7 @@ interface DetailTransaksi {
     seller?: {
       username: string;
       email: string;
+      toko?: { nama_toko: string };
     };
     kategori?: {
       nama_kategori: string;
@@ -416,6 +417,7 @@ function PesananContent() {
         detail.produk?.nama_produk?.toLowerCase().includes(keyword),
       ) ||
       trx.detail_transaksi?.some((detail) =>
+        detail.produk?.seller?.toko?.nama_toko?.toLowerCase().includes(keyword) ||
         detail.produk?.seller?.username?.toLowerCase().includes(keyword),
       ) ||
       trx.status_transaksi?.toLowerCase().includes(keyword) ||
@@ -454,6 +456,7 @@ function PesananContent() {
       const firstItem = items[0];
 
       const sellerName =
+        firstItem?.produk?.seller?.toko?.nama_toko ||
         firstItem?.produk?.seller?.username || "GreenMarket Store";
 
       const subtotal = items.reduce(

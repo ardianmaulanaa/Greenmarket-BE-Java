@@ -31,6 +31,7 @@ interface ProdukKeranjang {
     id?: number;
     username?: string;
     email?: string;
+    toko?: { nama_toko: string };
   };
 }
 
@@ -183,7 +184,7 @@ export default function KeranjangPage() {
     const groups: Record<string, KeranjangItem[]> = {};
 
     keranjangItems.forEach((item) => {
-      const sellerName = item.produk?.seller?.username || "GreenMarket Store";
+      const sellerName = item.produk?.seller?.toko?.nama_toko || item.produk?.seller?.username || "GreenMarket Store";
       if (!groups[sellerName]) {
         groups[sellerName] = [];
       }

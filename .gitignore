@@ -3,3 +3,9 @@ node_modules
 .env
 
 /generated/prisma
+
+# Maven build output
+backend-java/target/
+
+# IDE
+.qoder/

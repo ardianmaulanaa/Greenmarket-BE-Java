@@ -19,7 +19,7 @@ interface Produk {
   foto_produk_list?: string[];
   fotos?: { url_foto: string }[];
   kategori?: { nama_kategori: string };
-  seller?: { username: string; email: string };
+  seller?: { username: string; email: string; toko?: { nama_toko: string } };
 }
 
 interface JasaKirim {
@@ -681,7 +681,7 @@ function PembayaranContent() {
 
                       <div>
                         <p className="text-[13px] text-gray-500 font-semibold mb-1">
-                          {product!.seller?.username || "GreenMarket Store"}
+                          {product!.seller?.toko?.nama_toko || product!.seller?.username || "GreenMarket Store"}
                         </p>
 
                         <h2 className="text-[30px] font-black text-[#1f1f1f] leading-tight mb-2">

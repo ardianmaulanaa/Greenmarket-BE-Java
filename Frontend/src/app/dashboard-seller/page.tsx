@@ -51,6 +51,7 @@ const animationStyles = `
 interface Produk {
   id_produk: string;
   id_user_seller: number;
+  id_kategori?: string;
   nama_produk: string;
   harga: number;
   stok: number;
@@ -64,7 +65,12 @@ interface Produk {
   catatan_penjual?: string;
 
   kategori?: { nama_kategori: string };
-  seller?: { username: string; email: string };
+  seller?: { username: string; email: string; toko?: { nama_toko: string } };
+}
+
+interface Kategori {
+  id_kategori: string;
+  nama_kategori: string;
 }
 
 export default function DashboardSeller() {
@@ -76,6 +82,8 @@ export default function DashboardSeller() {
   const [sellerId, setSellerId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [categories, setCategories] = useState<Kategori[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const carouselSlides = [
     {
@@ -112,6 +120,37 @@ export default function DashboardSeller() {
       setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
     }, 3500);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        });
+
+        if (!response.ok) throw new Error("Gagal mengambil kategori");
+
+        const data = await response.json();
+        const categoryList = Array.isArray(data)
+          ? data
+          : Array.isArray(data.data)
+            ? data.data
+            : Array.isArray(data.data?.categories)
+              ? data.data.categories
+              : Array.isArray(data.categories)
+                ? data.categories
+                : [];
+
+        setCategories(categoryList);
+      } catch (error) {
+        console.error("Error fetch kategori:", error);
+        setCategories([]);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const myProducts = sellerId
@@ -176,12 +215,15 @@ export default function DashboardSeller() {
   }, [router]);
 
   const resetFilters = () => {
-    const inputs = document.querySelectorAll(
-      ".filter-check input",
-    ) as NodeListOf<HTMLInputElement>;
+    setSelectedCategories([]);
+  };
 
-    inputs.forEach((input) => {
-      input.checked = false;
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(categoryId)) {
+        return prev.filter((id) => id !== categoryId);
+      }
+      return [...prev, categoryId];
     });
   };
 
@@ -209,13 +251,16 @@ export default function DashboardSeller() {
     );
   }
 
-  const filteredProducts = dbProducts.filter(
-    (p) =>
-      p.nama_produk?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.kategori?.nama_kategori
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()),
-  );
+  const filteredProducts = dbProducts.filter((p) => {
+    const productName = p.nama_produk?.toLowerCase() || "";
+    const productCategory = p.kategori?.nama_kategori?.toLowerCase() || "";
+    const keyword = searchTerm.toLowerCase();
+    const matchesSearch = productName.includes(keyword) || productCategory.includes(keyword);
+
+    if (selectedCategories.length === 0) return matchesSearch;
+    const matchesCategory = selectedCategories.includes(p.id_kategori || "");
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f1f8e9] via-[#2fa84f]/15 to-[#0a110b] font-sans text-[#1a2e1f] relative overflow-hidden">
@@ -385,22 +430,23 @@ export default function DashboardSeller() {
               </div>
 
               <div className="space-y-4 mb-8">
-                {[
-                  "Pakaian Organik",
-                  "Daur Ulang",
-                  "Ramah Lingkungan",
-                  "Terlaris",
-                ].map((item) => (
+                {categories.map((category) => (
                   <label
-                    key={item}
+                    key={category.id_kategori}
                     className="filter-check flex items-center gap-3 cursor-pointer group"
                   >
                     <input
                       type="checkbox"
+                      checked={selectedCategories.includes(
+                        category.id_kategori,
+                      )}
+                      onChange={() =>
+                        handleCategoryChange(category.id_kategori)
+                      }
                       className="accent-[#2fa84f] w-4 h-4 cursor-pointer bg-white/5 border-white/10 rounded"
                     />
                     <span className="text-sm font-medium text-gray-400 group-hover:text-white transition-colors">
-                      {item}
+                      {category.nama_kategori}
                     </span>
                   </label>
                 ))}
@@ -500,10 +546,10 @@ export default function DashboardSeller() {
                                   stroke="currentColor"
                                   strokeWidth="2.5"
                                 >
-                                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                  <circle cx="12" cy="7" r="4" />
+                                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                  <polyline points="9 22 9 12 15 12 15 22" />
                                 </svg>
-                                {p.seller?.username || "Toko Saya"}
+                                {p.seller?.toko?.nama_toko || p.seller?.username || "Toko Saya"}
                               </span>
 
                               <span className="text-[9px] text-[#2fa84f] bg-[#2fa84f]/10 px-2 py-1 rounded font-black uppercase">
