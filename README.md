@@ -407,7 +407,7 @@ Base URL: `http://localhost:8080/backend-java/api`
 | Nama | NIM |
 |------|-----|
 | [Nama Anggota 1] | [103012400] | 
-| [Nama Anggota 2] | [103012400] | 
+| [Muhammad Arief Faruq Wafdan] | [103012400246] | 
 | [Handri Athallah Saputra] | [103012400328] | 
 | [Muhammad Ghizar Al Hasan] | [103012400235] |
 | [Keanu Fibie Dimasyqi] | [103012430045] |
