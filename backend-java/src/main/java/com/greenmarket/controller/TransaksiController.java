@@ -103,8 +103,9 @@ public class TransaksiController extends BaseApiController {
         }
 
         if (path == null || path.equals("/")) {
-            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false,
-                    "Parameter user atau ID transaksi wajib dikirim", null);
+            List<Transaksi> list = transaksiService.getAllTransaksi();
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(gson.toJson(list));
             return;
         }
 

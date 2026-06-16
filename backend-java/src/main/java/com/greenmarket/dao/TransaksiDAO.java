@@ -581,6 +581,29 @@ public class TransaksiDAO implements ITransaksiDAO {
         return list;
     }
 
+    public List<Transaksi> getAllTransaksi() {
+        List<Transaksi> list = new ArrayList<>();
+        String sql = "SELECT * FROM \"Transaksi\" ORDER BY tanggal_transaksi DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Transaksi transaksi = mapResultSetToTransaksi(rs);
+                    loadTransaksiRelations(conn, transaksi);
+                    list.add(transaksi);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] getAllTransaksi gagal: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public boolean konfirmasiKirim(String idTransaksi, int idSeller) {
         String cekSql = "SELECT COUNT(*) FROM \"Detail_Transaksi\" d " +
                 "JOIN \"Produk\" p ON d.id_produk = p.id_produk " +

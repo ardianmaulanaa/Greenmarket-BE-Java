@@ -85,6 +85,10 @@ public class TransaksiService {
         return transaksiDAO.getTransaksiBySeller(idSeller);
     }
 
+    public List<Transaksi> getAllTransaksi() {
+        return transaksiDAO.getAllTransaksi();
+    }
+
     public boolean konfirmasiKirim(String idTransaksi, int idSeller) {
         if (idTransaksi == null || idTransaksi.trim().isEmpty()) {
             return false;

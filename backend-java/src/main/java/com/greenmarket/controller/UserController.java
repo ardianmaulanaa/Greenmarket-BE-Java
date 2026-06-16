@@ -117,4 +117,32 @@ public class UserController extends BaseApiController {
             sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID user tidak valid", null);
         }
     }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        prepareJsonResponse(response);
+
+        String path = request.getPathInfo();
+
+        if (path == null || path.equals("/")) {
+            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID user wajib dikirim", null);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(path.substring(1));
+            boolean success = userService.deleteUser(id);
+
+            if (success) {
+                sendResponse(response, HttpServletResponse.SC_OK, true, "User berhasil dihapus", null);
+            } else {
+                sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "User gagal dihapus", null);
+            }
+
+        } catch (NumberFormatException e) {
+            sendResponse(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID user tidak valid", null);
+        }
+    }
 }

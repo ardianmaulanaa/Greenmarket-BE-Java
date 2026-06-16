@@ -462,7 +462,7 @@ function PembayaranContent() {
     <>
       <Script
         src="https://app.sandbox.midtrans.com/snap/snap.js"
-        data-client-key="ISI KEY MIDTRANS CLIENT YANG KU KASIH"
+        data-client-key="Mid-client-tlpjZEU6FAjzQbBY"
         strategy="afterInteractive"
       />
       <div className="min-h-screen bg-[#edf3e7] relative overflow-hidden font-sans">

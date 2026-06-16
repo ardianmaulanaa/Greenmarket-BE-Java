@@ -9,3 +9,6 @@ backend-java/target/
 
 # IDE
 .qoder/
+
+# Credentials
+backend-java/src/main/resources/midtrans.properties
