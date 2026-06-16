@@ -292,8 +292,6 @@ export default function DashboardBuyer() {
 
         const data = await response.json();
 
-        console.log("Response kategori:", data);
-
         const categoryList = Array.isArray(data)
           ? data
           : Array.isArray(data.data)
@@ -360,8 +358,6 @@ export default function DashboardBuyer() {
           ? `${API_BASE_URL}/products?${query.toString()}`
           : `${API_BASE_URL}/products`;
 
-        console.log("Fetch produk URL:", url);
-
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -380,8 +376,6 @@ export default function DashboardBuyer() {
         }
 
         const data = await response.json();
-
-        console.log("Response produk:", data);
 
         const products = Array.isArray(data)
           ? data
