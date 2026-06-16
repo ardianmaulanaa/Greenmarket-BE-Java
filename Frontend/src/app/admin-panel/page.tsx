@@ -766,9 +766,7 @@ export default function AdminPanel() {
                     <tr className="border-b border-white/5 text-[9px] text-gray-500 font-black uppercase tracking-widest">
                       <th className="pb-4 pl-4">Pengguna</th>
                       <th className="pb-4">Email</th>
-                      <th className="pb-4">Role Saat Ini</th>
-                      <th className="pb-4">Ubah Role</th>
-                      <th className="pb-4 pr-4 text-right">Aksi</th>
+                      <th className="pb-4 pr-4 text-right">Role Saat Ini</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -786,7 +784,7 @@ export default function AdminPanel() {
                           </span>
                         </td>
                         <td className="py-4 text-gray-300 font-medium">{u.email}</td>
-                        <td className="py-4">
+                        <td className="py-4 pr-4 text-right">
                           <span
                             className={`text-[8px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider border ${
                               u.role === "ADMIN"
@@ -798,25 +796,6 @@ export default function AdminPanel() {
                           >
                             {u.role}
                           </span>
-                        </td>
-                        <td className="py-4">
-                          <select
-                            value={u.role || "BUYER"}
-                            onChange={(e) => handleUpdateRole(u.id, e.target.value)}
-                            className="bg-[#0a110b] border border-white/10 text-white rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#2fa84f]"
-                          >
-                            <option value="BUYER">BUYER</option>
-                            <option value="SELLER">SELLER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
-                        </td>
-                        <td className="py-4 pr-4 text-right">
-                          <button
-                            onClick={() => handleDeleteUser(u.id)}
-                            className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition border border-red-500/20"
-                          >
-                            Hapus
-                          </button>
                         </td>
                       </tr>
                     ))}
@@ -841,9 +820,7 @@ export default function AdminPanel() {
                       <th className="pb-4">Penjual</th>
                       <th className="pb-4">Stok</th>
                       <th className="pb-4">Harga</th>
-                      <th className="pb-4">Status</th>
-                      <th className="pb-4">Moderasi Status</th>
-                      <th className="pb-4 pr-4 text-right">Aksi</th>
+                      <th className="pb-4 pr-4 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -889,7 +866,7 @@ export default function AdminPanel() {
                           <td className="py-4 font-black text-[#2fa84f]">
                             {formatRupiah(p.harga)}
                           </td>
-                          <td className="py-4">
+                          <td className="py-4 pr-4 text-right">
                             <span
                               className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${
                                 p.status_produk === "AKTIF"
@@ -899,26 +876,6 @@ export default function AdminPanel() {
                             >
                               {p.status_produk}
                             </span>
-                          </td>
-                          <td className="py-4">
-                            <button
-                              onClick={() => handleToggleProductStatus(p)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
-                                p.status_produk === "AKTIF"
-                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500 hover:text-white"
-                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500 hover:text-white"
-                              }`}
-                            >
-                              {p.status_produk === "AKTIF" ? "Nonaktifkan" : "Aktifkan"}
-                            </button>
-                          </td>
-                          <td className="py-4 pr-4 text-right">
-                            <button
-                              onClick={() => handleDeleteProduct(p.id_produk)}
-                              className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition border border-red-500/20"
-                            >
-                              Hapus
-                            </button>
                           </td>
                         </tr>
                       );
