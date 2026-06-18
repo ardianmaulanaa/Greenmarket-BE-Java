@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import com.greenmarket.model.User;
 import java.util.List;
 
 @WebServlet("/api/products/*")
@@ -128,6 +129,18 @@ public class ProdukController extends BaseApiController {
             throws ServletException, IOException {
 
         prepareJsonResponse(response);
+
+        // Authorization check: hanya Admin yang boleh hapus produk
+        String requesterRole = request.getHeader("Authorization");
+        User requester = new User();
+        requester.setRole(requesterRole);
+        User adminCheck = User.fromUser(requester);
+
+        if (adminCheck == null || !adminCheck.canManageProducts()) {
+            sendResponse(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Akses ditolak! Hanya Admin yang dapat menghapus produk.", null);
+            return;
+        }
 
         String path = request.getPathInfo();
 

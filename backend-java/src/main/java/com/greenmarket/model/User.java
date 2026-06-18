@@ -79,6 +79,15 @@ public class User {
         this.toko = toko;
     }
 
+    // Default: user biasa tidak punya hak kelola
+    public boolean canManageUsers() {
+        return false;
+    }
+
+    public boolean canManageProducts() {
+        return false;
+    }
+
     public static User fromUser(User user) {
         if (user == null) return null;
         String role = user.getRole();

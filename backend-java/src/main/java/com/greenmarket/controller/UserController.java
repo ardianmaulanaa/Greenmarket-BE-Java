@@ -124,6 +124,18 @@ public class UserController extends BaseApiController {
 
         prepareJsonResponse(response);
 
+        // Authorization check: hanya Admin yang boleh hapus user
+        String requesterRole = request.getHeader("Authorization");
+        User requester = new User();
+        requester.setRole(requesterRole);
+        User adminCheck = User.fromUser(requester);
+
+        if (adminCheck == null || !adminCheck.canManageUsers()) {
+            sendResponse(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Akses ditolak! Hanya Admin yang dapat menghapus pengguna.", null);
+            return;
+        }
+
         String path = request.getPathInfo();
 
         if (path == null || path.equals("/")) {
