@@ -164,17 +164,38 @@ public class UserDAO implements IUserDAO {
         }
     }
 
-    // Hapus user
+    // Hapus user (cascade manual untuk hindari ON DELETE RESTRICT)
     public boolean deleteUser(int id) {
-        String sql = "DELETE FROM \"User\" WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            // 1. Hapus Detail_Transaksi untuk semua produk seller ini
+            String sqlDetail = "DELETE FROM \"Detail_Transaksi\" WHERE id_produk IN " +
+                    "(SELECT id_produk FROM \"Produk\" WHERE id_user_seller = ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlDetail)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+            // 2. Hapus Keranjang untuk semua produk seller ini
+            String sqlKeranjang = "DELETE FROM \"Keranjang\" WHERE id_produk IN " +
+                    "(SELECT id_produk FROM \"Produk\" WHERE id_user_seller = ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlKeranjang)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
-            ps.setInt(1, id);
+            // 3. Hapus semua produk seller ini (karena Produk ON DELETE RESTRICT ke User)
+            String sqlProduk = "DELETE FROM \"Produk\" WHERE id_user_seller = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlProduk)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
 
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
+            // 4. Baru hapus user (Toko sudah ON DELETE CASCADE)
+            String sql = "DELETE FROM \"User\" WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, id);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("[ERROR] deleteUser gagal: " + e.getMessage());

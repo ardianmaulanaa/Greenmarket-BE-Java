@@ -325,13 +325,27 @@ public class ProdukDAO implements IProdukDAO {
     }
 
     public boolean deleteProduk(String idProduk) {
-        String sql = "DELETE FROM \"Produk\" WHERE id_produk = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            // Hapus relasi di Detail_Transaksi dulu (karena ON DELETE RESTRICT)
+            String sqlDetail = "DELETE FROM \"Detail_Transaksi\" WHERE id_produk = ?";
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                psDetail.setString(1, idProduk);
+                psDetail.executeUpdate();
+            }
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Hapus relasi di Keranjang (sudah CASCADE tapi hapus manual biar aman)
+            String sqlKeranjang = "DELETE FROM \"Keranjang\" WHERE id_produk = ?";
+            try (PreparedStatement psKeranjang = conn.prepareStatement(sqlKeranjang)) {
+                psKeranjang.setString(1, idProduk);
+                psKeranjang.executeUpdate();
+            }
 
-            ps.setString(1, idProduk);
-            return ps.executeUpdate() > 0;
+            // Baru hapus produk
+            String sql = "DELETE FROM \"Produk\" WHERE id_produk = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, idProduk);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("[ERROR] deleteProduk gagal: " + e.getMessage());
